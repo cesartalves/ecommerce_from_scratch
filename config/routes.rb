@@ -18,5 +18,6 @@ Rails.application.routes.draw do
     delete 'logout', to: 'login#destroy'
 
     get '/', to: 'dashboard#index'
+    resources :products
   end
 end
