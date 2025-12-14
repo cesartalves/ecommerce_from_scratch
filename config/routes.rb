@@ -27,5 +27,5 @@ Rails.application.routes.draw do
   }
 
   get '/checkout', to: 'checkouts#index'
-  post '/checkout', to: 'checkouts#create'
+  post '/checkout', to: 'checkouts#create', as: :checkouts
 end

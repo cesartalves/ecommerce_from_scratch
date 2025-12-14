@@ -9,4 +9,6 @@ class User < ApplicationRecord
     admin: 1,
     editor: 2
   }
+
+  has_many :orders
 end
