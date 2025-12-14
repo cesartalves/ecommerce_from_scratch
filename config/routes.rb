@@ -20,4 +20,12 @@ Rails.application.routes.draw do
     get '/', to: 'dashboard#index'
     resources :products
   end
+
+  devise_for :users, controllers: {
+    sessions: 'users/sessions',
+    registrations: 'users/registrations'
+  }
+
+  get '/checkout', to: 'checkouts#index'
+  post '/checkout', to: 'checkouts#create'
 end

@@ -1,0 +1,134 @@
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+
+<div id="checkout"
+     data-public-key="<%= @public_key %>"
+     data-total="<%= @order.total %>">
+
+  <h2>Pagamento</h2>
+
+  <p>Total: <strong>R$ <%= number_to_currency(@order.total, unit: "") %></strong></p>
+
+  <label>
+    <input type="radio" name="payment_method" value="card" checked>
+    Cartão de crédito
+  </label>
+
+  <label>
+    <input type="radio" name="payment_method" value="pix">
+    Pix
+  </label>
+
+  <!-- CARTÃO -->
+  <form id="card-form">
+    <div id="card-number"></div>
+    <div id="expiration-date"></div>
+    <div id="security-code"></div>
+    <div id="card-holder-name"></div>
+    <div id="issuer"></div>
+    <div id="installments"></div>
+    <div id="identification-type"></div>
+    <div id="identification-number"></div>
+
+    <button type="submit">Pagar com cartão</button>
+  </form>
+
+  <!-- PIX -->
+  <form id="pix-form" style="display:none">
+    <button type="submit">Pagar com Pix</button>
+  </form>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("checkout")
+  const publicKey = container.dataset.publicKey
+  const total = container.dataset.total
+
+  const mp = new MercadoPago(publicKey, { locale: 'pt-BR' })
+
+  // 🔹 Card form
+  const cardForm = mp.cardForm({
+    amount: total,
+    autoMount: true,
+    form: {
+      id: "card-form",
+      cardNumber: { id: "card-number" },
+      expirationDate: { id: "expiration-date" },
+      securityCode: { id: "security-code" },
+      cardholderName: { id: "card-holder-name" },
+      issuer: { id: "issuer" },
+      installments: { id: "installments" },
+      identificationType: { id: "identification-type" },
+      identificationNumber: { id: "identification-number" }
+    },
+    callbacks: {
+      onSubmit: event => {
+        event.preventDefault()
+
+        const data = cardForm.getCardFormData()
+
+        fetch("/checkouts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+          },
+          body: JSON.stringify({
+            payment_method: "card",
+            token: data.token,
+            installments: data.installments,
+            issuer_id: data.issuerId,
+            payer: {
+              email: data.cardholderEmail,
+              identification: {
+                type: data.identificationType,
+                number: data.identificationNumber
+              }
+            }
+          })
+        })
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            window.location = res.redirect_url
+          } else {
+            alert(res.error)
+          }
+        })
+      }
+    }
+  })
+
+  // 🔹 Pix form
+  document.getElementById("pix-form").addEventListener("submit", e => {
+    e.preventDefault()
+
+    fetch("/checkouts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
+      },
+      body: JSON.stringify({
+        payment_method: "pix"
+      })
+    })
+    .then(r => r.json())
+    .then(res => {
+      window.location = res.redirect_url
+    })
+  })
+
+  // 🔹 Toggle forms
+  document.querySelectorAll("input[name='payment_method']").forEach(input => {
+    input.addEventListener("change", e => {
+      document.getElementById("card-form").style.display =
+        e.target.value === "card" ? "block" : "none"
+
+      document.getElementById("pix-form").style.display =
+        e.target.value === "pix" ? "block" : "none"
+    })
+  })
+})
+</script>

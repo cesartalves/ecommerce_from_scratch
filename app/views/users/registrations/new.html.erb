@@ -1,0 +1,29 @@
+<h1>Create Account</h1>
+
+<%= form_with url: user_registration_path, scope: :user, method: :post, local: true do |f| %>
+  <div>
+    <%= f.label :email %><br>
+    <%= f.email_field :email, required: true %>
+  </div>
+
+  <div>
+    <%= f.label :password %><br>
+    <%= f.password_field :password, required: true %>
+  </div>
+
+  <div>
+    <%= f.label :password_confirmation %><br>
+    <%= f.password_field :password_confirmation, required: true %>
+  </div>
+
+  <div>
+    <%= f.submit "Create account" %>
+  </div>
+<% end %>
+
+<hr>
+
+<p>
+  Already have an account?
+  <%= link_to "Login", new_user_session_path %>
+</p>

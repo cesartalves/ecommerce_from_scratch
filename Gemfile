@@ -55,5 +55,6 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem "devise"
+gem "devise", "~> 4.8"
 gem 'aws-sdk-s3'
+gem 'mercadopago-sdk'
