@@ -2,18 +2,16 @@ class CheckoutsController < ApplicationController
   before_action :authenticate_user!
 
   def index 
-    @order = current_user.orders.pending.last || current_user.orders.create(total: 5)
+    @order = current_user.cart_order
     @public_key = Rails.application.credentials.dig(:mercado_pago, :public_key)
   end
   
   def create
-    @order = current_user.orders.pending.last
+    @order = current_user.cart_order
 
     case params[:payment_method]
     when "card"
       client = MercadoPago::Client.new
-
-      debugger  
 
       response = client.create_payment(
         transaction_amount: @order.total.to_f,
@@ -49,17 +47,5 @@ class CheckoutsController < ApplicationController
         render json: { qr_code: qr_code, qr_code_base64: qr_code_base64 }
       end 
     end
-
-    # if payment["status"] == "approved" || payment["status"] == "pending"
-    #   render json: {
-    #     success: true,
-    #     redirect_url: payment["point_of_interaction"]&.dig("transaction_data", "ticket_url") ||
-    #                   success_path
-    #   }
-    # else
-    #   render json: { success: false, error: "Pagamento recusado" }, status: 422
-    # end
-  end
-
- 
+  end 
 end

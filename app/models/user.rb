@@ -11,4 +11,8 @@ class User < ApplicationRecord
   }
 
   has_many :orders
+
+  def cart_order
+    orders.pending.last
+  end
 end

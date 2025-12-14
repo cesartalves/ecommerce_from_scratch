@@ -26,6 +26,13 @@ Rails.application.routes.draw do
     registrations: 'users/registrations'
   }
 
+  get '/carrinho', to: 'cart#index', as: :cart
+
   get '/checkout', to: 'checkouts#index'
   post '/checkout', to: 'checkouts#create', as: :checkouts
+
+  get 'produtos', to: 'products#index', as: :products
+  resources 'pedidos', onl: %i[index], as: :orders
+
+  root 'products#index'
 end

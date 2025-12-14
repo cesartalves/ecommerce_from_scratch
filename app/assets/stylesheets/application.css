@@ -13,3 +13,11 @@
  *= require_tree .
  *= require_self
  */
+
+ .navbar-container {
+  display: flex;
+ }
+
+ .products-container img {
+  width: 300px;
+ }
