@@ -1,0 +1,18 @@
+
+
+Produtos no Carrinho:
+
+<% @order.line_items.each do |line_item| %>
+  <%= line_item.product.name %>
+  <%= line_item.quantity %>
+  <%= line_item.price %>
+<% end %>
+
+Valor total do pedido:
+<%= @order.total %>
+
+<% if @order.line_items.any? %>
+  <%= link_to "Finalizar pedido", checkout_path, class: "btn btn-primary" %>
+<% end %>
+
+

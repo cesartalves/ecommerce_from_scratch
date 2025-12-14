@@ -10,8 +10,8 @@
  * files in this directory. Styles in this file should be added after the last require_* statement.
  * It is generally better to create a new file per style scope.
  *
- *= require_tree .
  *= require_self
+ *= require_tree .
  */
 
  .navbar-container {
@@ -21,3 +21,28 @@
  .products-container img {
   width: 300px;
  }
+
+ .navbar {
+  display: flex;
+  justify-content: space-between; /* pushes left & right apart */
+  align-items: center;
+  padding: 12px 24px;
+  background: #111;
+}
+
+.nav-left a,
+.nav-right a {
+  color: white;
+  text-decoration: none;
+  margin-left: 16px;
+  font-weight: 500;
+}
+
+.nav-left a {
+  margin-left: 0;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+}

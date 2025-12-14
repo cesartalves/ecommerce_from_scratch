@@ -17,7 +17,7 @@ Rails.application.routes.draw do
     post 'login',  to: 'login#create', as: :create_session  # authenticate
     delete 'logout', to: 'login#destroy'
 
-    get '/', to: 'dashboard#index'
+    get '/', to: 'dashboard#index', as: :dashboard
     resources :products
   end
 
@@ -32,7 +32,10 @@ Rails.application.routes.draw do
   post '/checkout', to: 'checkouts#create', as: :checkouts
 
   get 'produtos', to: 'products#index', as: :products
-  resources 'pedidos', onl: %i[index], as: :orders
+  get 'produtos/:id', to: 'products#show', as: :product
+  get 'pedidos', to: 'orders#index', as: :orders
+
+  post 'pedidos/add', to: 'orders#add', as: :add_product
 
   root 'products#index'
 end

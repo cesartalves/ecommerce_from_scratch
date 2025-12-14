@@ -1,4 +1,4 @@
-class Admin::ProductsController < ApplicationController
+class Admin::ProductsController < Admin::BaseController
   before_action :set_product, only: [:edit, :update, :destroy]
 
   def index
@@ -41,6 +41,6 @@ class Admin::ProductsController < ApplicationController
   end
 
   def product_params
-    params.require(:product).permit(:name, :description, :image)
+    params.require(:product).permit(:name, :description, :image, :price)
   end
 end

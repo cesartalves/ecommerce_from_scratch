@@ -18,8 +18,8 @@
   </head>
 
   <body>
+  
     <nav class="navbar">
-      <div class="navbar-container">
         <div class="navbar-left">
           <%= link_to "Home", "/", class: "navbar-brand" %>
         </div>
@@ -51,8 +51,6 @@
           <% else %>
             <%= link_to "Entrar", new_user_session_path, class: "navbar-link" %>
           <% end %>          
-        </div>
-        
       </div>
     </nav>
     <%= yield %>

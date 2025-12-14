@@ -1,0 +1,10 @@
+<h3><%= @product.name %></h3>
+<p><%= @product.description %></p>
+
+<%= image_tag @product.image if @product.image.attached? %>
+
+<%= button_to "Adicionar ao carrinho",
+            add_product_path(product_id: @product.id),
+            method: :post,
+            class: "add-to-cart" %>
+    </div>

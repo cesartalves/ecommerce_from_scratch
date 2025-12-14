@@ -1,0 +1,4 @@
+<% current_user.orders.where.not(status: :cart).each do |order| %>
+  <%= order.status %>
+  <%= order.total %>
+<% end %>

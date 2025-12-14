@@ -8,6 +8,7 @@
       <th>Name</th>
       <th>Description</th>
       <th>Image</th>
+      <th>Price</th>
       <th></th>
     </tr>
   </thead>
@@ -21,6 +22,9 @@
           <% if product.image.attached? %>
             <%= image_tag product.image, width: 80 %>
           <% end %>
+        </td>
+        <td>
+          <%= product.price %>
         </td>
         <td>
           <%= link_to "Edit", edit_admin_product_path(product) %> |
