@@ -3,8 +3,10 @@
 
 <%= image_tag @product.image if @product.image.attached? %>
 
+<h2>Valor:</h2> R$<%= @product.price %>
+
 <%= button_to "Adicionar ao carrinho",
-            add_product_path(product_id: @product.id),
-            method: :post,
-            class: "add-to-cart" %>
-    </div>
+        add_product_path(product_id: @product.id),
+        method: :post,
+        class: "add-to-cart" %>
+</div>
