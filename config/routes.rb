@@ -27,6 +27,8 @@ Rails.application.routes.draw do
   }
 
   get '/carrinho', to: 'cart#index', as: :cart
+  get  '/endereco', to: 'address#new', as: :new_address
+  post '/endereco', to: 'address#create', as: :addresses
 
   get '/checkout', to: 'checkouts#index'
   post '/checkout', to: 'checkouts#create', as: :checkouts
@@ -35,7 +37,8 @@ Rails.application.routes.draw do
   get 'produtos/:id', to: 'products#show', as: :product
   get 'pedidos', to: 'orders#index', as: :orders
 
-  post 'pedidos/add', to: 'orders#add', as: :add_product
+  post 'pedidos/add/:product_id', to: 'orders#add', as: :add_product
+  post 'pedidos/remove/:product_id', to: 'orders#remove', as: :remove_product
 
   root 'products#index'
 end

@@ -1,10 +1,12 @@
-<div class="products-container">
-  <% @products.each do |product| %>
-    <%= link_to product_path(product), class: "product-card" do %>
-      <h3><%= product.name %></h3>
-      <p><%= product.description %></p>
+<div class="products-container">  
+<% @products.each do |product| %>
+  <div class="products-card">
+  <%= link_to product_path(product), class: "product-link" do %>
+    <h3><%= product.name %></h3>
+    <p><%= product.description %></p>
 
-      <%= image_tag product.image if product.image.attached? %>
-    <% end %>
+    <%= image_tag product.image if product.image.attached? %>
   <% end %>
+  </div>
+<% end %>
 </div>

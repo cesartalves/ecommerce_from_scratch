@@ -57,4 +57,6 @@ end
 
 gem "devise", "~> 4.8"
 gem 'aws-sdk-s3'
+gem 'mercadopago-sdk'
 gem 'httparty'
+gem 'dotenv'

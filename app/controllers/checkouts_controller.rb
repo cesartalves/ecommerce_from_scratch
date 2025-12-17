@@ -1,9 +1,10 @@
 class CheckoutsController < ApplicationController
   before_action :authenticate_user!
+  before_action :confirm_address, if: :address_missing?
 
   def index 
     @order = current_user.cart_order
-    @public_key = Rails.application.credentials.dig(:mercado_pago, :public_key)
+    @public_key = ENV['MP_PUBLIC_KEY']
   end
   
   def create
@@ -25,11 +26,13 @@ class CheckoutsController < ApplicationController
       )
 
       if response.code == 201
-        @order.paid!
+        @order.paid! 
       end
 
     when "pix"
       client = MercadoPago::Client.new
+
+   
 
       response = client.create_payment(
         transaction_amount: @order.total.to_f,
@@ -48,4 +51,16 @@ class CheckoutsController < ApplicationController
       end 
     end
   end 
+
+  private
+
+  def address_missing?
+    current_user.present? && current_user.address.nil?
+  end
+
+
+
+  def confirm_address
+    redirect_to new_address_path, alert: "Por favor, cadastre seu endereço antes de continuar."
+  end
 end

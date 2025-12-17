@@ -1,15 +1,44 @@
 
 
-Produtos no Carrinho:
+<h2>Produtos no Carrinho</h2>
 
-<% @order.line_items.each do |line_item| %>
-  <%= line_item.product.name %>
-  <%= line_item.quantity %>
-  <%= line_item.price %>
+<% unless @order.line_items.any?%>
+Não há nenhum produto no seu carrinho
+
+<% else %>
+<div class="cart-items">
+  <% @order.line_items.each do |line_item| %>
+    <div class="cart-line-item">
+      <%= line_item.product.name %>
+      <%= line_item.quantity %>
+      <%= line_item.price %>
+
+      <div class="quantity-controls">
+        <%= button_to add_product_path(product_id: line_item.product.id),
+            method: :post,
+            class: "qty-btn plus",
+            title: "Adicionar" do %>
+          +
+        <% end %>
+
+        <span class="qty"><%= line_item.quantity %></span>
+
+        <%= button_to remove_product_path(product_id: line_item.product.id),
+            method: :post,
+            class: "qty-btn minus",
+            title: "Remover" do %>
+          −
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+  </div>
 <% end %>
 
 Valor total do pedido:
 <%= @order.total %>
+
+<br>
 
 <% if @order.line_items.any? %>
   <%= link_to "Finalizar pedido", checkout_path, class: "btn btn-primary" %>

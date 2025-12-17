@@ -12,7 +12,7 @@ class Order < ApplicationRecord
   validates :total, numericality: { greater_than_or_equal_to: 0 }
 
   def recalculate!
-    total = line_items.map { |li| li.quantity * li.product.price }
+    total = line_items.map { |li| li.quantity * li.product.price }.sum
     update!(total: total)
   end
 end

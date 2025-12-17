@@ -23,6 +23,6 @@ class MercadoPago::Client
   private
 
   def access_token
-    Rails.application.credentials.dig(:mercado_pago, :access_token)
+    ENV['MP_ACCESS_TOKEN']
   end
 end

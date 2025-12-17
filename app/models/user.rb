@@ -11,8 +11,9 @@ class User < ApplicationRecord
   }
 
   has_many :orders
+  has_one :address, dependent: :destroy
 
   def cart_order
-    orders.pending.last
+    orders.find_or_create_by(status: :cart)
   end
 end

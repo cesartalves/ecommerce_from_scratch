@@ -1,4 +1,16 @@
+<h2>Meus Pedidos</h2>
+
 <% current_user.orders.where.not(status: :cart).each do |order| %>
-  <%= order.status %>
-  <%= order.total %>
+<div class="fe-order-card">
+  ID do pedido: <%= order.id %>
+  Estado <%= order.status %>
+  Total: <%= order.total %>
+  <ul>
+  <% order.line_items.each do |li| %>
+    <li>Nome<%= li.product.name %></li>
+    <li>Valor<%= li.price %></li>
+    <li>Preço<%= image_tag li.product.image, width: 80 %></li>
+  <% end %>
+  </ul>
+</div>  
 <% end %>

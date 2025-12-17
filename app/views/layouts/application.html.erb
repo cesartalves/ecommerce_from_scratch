@@ -26,9 +26,11 @@
 
         <div class="navbar-right">
           <%= link_to "Produtos", products_path, class: "navbar-link" %>
-          <div class="">
-            <%= link_to "Meus Pedidos", orders_path, class: "navbar-link" %>
-          </div>
+          <% if user_signed_in? %>
+            <div class="">
+              <%= link_to "Meus Pedidos", orders_path, class: "navbar-link" %>
+            </div>
+          <% end %>
           <%= link_to cart_path, class: "navbar-cart", aria: { label: "Carrinho" } do %>
             <svg
               xmlns="http://www.w3.org/2000/svg"

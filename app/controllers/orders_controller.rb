@@ -1,4 +1,5 @@
 class OrdersController < ApplicationController
+  before_action :authenticate_user!
   def index
 
   end
@@ -6,7 +7,7 @@ class OrdersController < ApplicationController
   def add
     product = Product.find(params[:product_id])
 
-    order = current_user.orders.find_or_create_by(status: "cart")
+    order = current_user.cart_order
 
     line_item = order.line_items.find_or_initialize_by(product: product)
     line_item.quantity ||= 0
@@ -15,6 +16,23 @@ class OrdersController < ApplicationController
 
     order.recalculate!
 
-    redirect_to products_path, notice: "Produto adicionado ao carrinho"
+    redirect_back fallback_location: root_path
+  end
+
+  def remove
+    item = current_user.cart_order.line_items.find_by(product_id: params[:product_id])
+    return redirect_back(fallback_location: root_path) unless item
+
+    item.quantity -= 1
+
+    if item.quantity <= 0
+      item.destroy
+    else
+      item.save!
+    end
+
+    order.recalculate!
+
+    redirect_back fallback_location: root_path
   end
 end

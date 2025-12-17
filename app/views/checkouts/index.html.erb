@@ -1,4 +1,8 @@
+
+
 <h2>Pagamento</h2>
+
+Valor total: <%= @order.total %>
 
 <div id="payment-form">
   <%= csrf_meta_tags %>
@@ -55,8 +59,6 @@
 
   <button id="pagar">Pagar</button>
 </div>
-
-<script src="https://sdk.mercadopago.com/js/v2"></script>
 
 <script src="https://sdk.mercadopago.com/js/v2"></script>
 
@@ -130,8 +132,6 @@
 
       document.getElementById('token').value = result.id;
 
-      
-
       fetch('/checkout', {
         method: 'POST',
         headers: {
@@ -144,8 +144,7 @@
           transaction_amount: document.getElementById('transaction_amount').value,
           installments: 1
         })
-      }).then(response => response.json())
-        .then(data => console.log(data));
+      }).then(response => window.location.replace("/pedidos"))
     });
   });
 </script>
