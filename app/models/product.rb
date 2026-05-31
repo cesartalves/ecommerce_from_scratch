@@ -1,5 +1,17 @@
 class Product < ApplicationRecord
   has_one_attached :image
 
-  validates :price, numericality: { greater_than_or_equal_to: 0 }
+  validates :price, numericality: { greater_than: 0 }
+  validates :name, uniqueness: true
+
+  def self.ransackable_attributes(auth_object = nil)
+  [
+    "name",
+    "description"
+  ]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["image_attachment", "image_blob"]
+  end
 end

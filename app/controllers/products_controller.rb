@@ -1,9 +1,12 @@
 class ProductsController < ApplicationController
   def index
-    @products = Product.all
-  end 
+    @q = Product.ransack(params[:q])
+    @products = @q.result
+  end
 
   def show
     @product = Product.find(params[:id])
   end
+
+  
 end

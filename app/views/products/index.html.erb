@@ -6,6 +6,8 @@
     <p><%= product.description %></p>
 
     <%= image_tag product.image if product.image.attached? %>
+
+    <p class="price">R$ <%= product.price.to_s("f") %></p>
   <% end %>
   </div>
 <% end %>

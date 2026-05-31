@@ -1,0 +1,6 @@
+
+<% @orders.each do |order| %>
+  <p><%= order.user.email %></p>
+  <p><%= order.total %></p>
+  <p><%= order.status %></p>
+<% end %>

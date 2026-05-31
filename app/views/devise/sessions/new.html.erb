@@ -1,24 +1,43 @@
-<h1>Login</h1>
+<div class="container">
+  <div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-6 col-lg-4">
 
-<%= form_with url: user_session_path, scope: :user, method: :post, local: true do |f| %>
-  <div>
-    <%= f.label :email %><br>
-    <%= f.email_field :email, autofocus: true, required: true %>
+      <div class="card shadow">
+        <div class="card-body">
+          <h1 class="text-center mb-4">Login</h1>
+
+          <%= form_with url: user_session_path, scope: :user, method: :post, local: true do |f| %>
+
+            <div class="mb-3">
+              <%= f.label :email, class: "form-label" %>
+              <%= f.email_field :email,
+                    autofocus: true,
+                    required: true,
+                    class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :senha, class: "form-label" %>
+              <%= f.password_field :password,
+                    required: true,
+                    class: "form-control" %>
+            </div>
+
+            <div class="d-grid">
+              <%= f.submit "Login", class: "btn btn-primary" %>
+            </div>
+
+            <hr>
+
+            <p class="text-center mb-0">
+              Não tem uma conta?
+              <%= link_to "Criar conta", new_user_registration_path %>
+            </p>
+
+          <% end %>
+        </div>
+      </div>
+
+    </div>
   </div>
-
-  <div>
-    <%= f.label :senha %><br>
-    <%= f.password_field :password, required: true %>
-  </div>
-
-  <div>
-    <%= f.submit "Login" %>
-  </div>
-
-  <hr>
-
-  <p>
-    Não tem uma conta?
-    <%= link_to "Criar conta", new_user_registration_path %>
-  </p>
-<% end %>
+</div>

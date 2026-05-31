@@ -60,3 +60,8 @@ gem 'aws-sdk-s3'
 gem 'mercadopago-sdk'
 gem 'httparty'
 gem 'dotenv'
+
+gem "bootstrap", "~> 5.3"
+gem "sassc-rails"
+
+gem "ransack"

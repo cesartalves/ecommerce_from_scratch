@@ -1,34 +1,65 @@
-<h1>New Product</h1>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
 
-<%= form_with model: [:admin, @product], local: true do |f| %>
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h2 class="mb-0">
+            <%= @product.persisted? ? "Edit Product" : "New Product" %>
+          </h2>
+        </div>
 
-  <div>
-    <%= f.label :name %><br>
-    <%= f.text_field :name, required: true %>
+        <div class="card-body">
+          <%= form_with model: [:admin, @product], local: true do |f| %>
+
+            <div class="mb-4">
+              <%= f.label :name, class: "form-label fw-bold" %>
+              <%= f.text_field :name,
+                    class: "form-control",
+                    required: true,
+                    placeholder: "Enter product name" %>
+            </div>
+
+            <div class="mb-4">
+              <%= f.label :description, class: "form-label fw-bold" %>
+              <%= f.text_area :description,
+                    rows: 5,
+                    class: "form-control",
+                    placeholder: "Describe the product..." %>
+            </div>
+
+            <div class="mb-4">
+              <%= f.label :image, class: "form-label fw-bold" %>
+              <%= f.file_field :image, class: "form-control" %>
+            </div>
+
+            <% if @product.image.attached? %>
+              <div class="mb-4">
+                <label class="form-label fw-bold">Current Image</label>
+
+                <div>
+                  <%= image_tag @product.image,
+                        class: "img-thumbnail",
+                        style: "max-width: 250px;" %>
+                </div>
+              </div>
+            <% end %>
+
+            <div class="d-flex gap-2">
+              <%= f.submit(
+                    @product.persisted? ? "Update Product" : "Create Product",
+                    class: "btn btn-primary"
+                  ) %>
+
+              <%= link_to "Cancel",
+                    admin_products_path,
+                    class: "btn btn-outline-secondary" %>
+            </div>
+
+          <% end %>
+        </div>
+      </div>
+
+    </div>
   </div>
-
-  <div>
-    <%= f.label :description %><br>
-    <%= f.text_area :description, rows: 5 %>
-  </div>
-
-  <div>
-    <%= f.label :image %><br>
-    <%= f.file_field :image %>
-
-    <% if @product.image.attached? %>
-      <p>Current image:</p>
-      <%= image_tag @product.image, width: 150 %>
-    <% end %>
-  </div>
-
-  <br>
-
-  <div>
-    <%= f.submit "Create Product" %>
-  </div>
-
-<% end %>
-
-<br>
-<%= link_to "Back", admin_products_path %>
+</div>

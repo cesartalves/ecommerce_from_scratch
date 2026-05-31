@@ -19,6 +19,7 @@ Rails.application.routes.draw do
 
     get '/', to: 'dashboard#index', as: :dashboard
     resources :products
+    resources :orders
   end
 
   devise_for :users, controllers: {
