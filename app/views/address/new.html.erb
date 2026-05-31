@@ -1,35 +1,66 @@
-<h2>Endereço</h2>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
 
-<%= form_with model: @address, url: addresses_path, local: true do |f| %>
-  <div>
-    <%= f.label :street, "Rua" %>
-    <%= f.text_field :street, value: @address.street %>
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h2 class="mb-0">Endereço</h2>
+        </div>
+
+        <div class="card-body">
+          <% if @address.errors.any? %>
+            <div class="alert alert-danger">
+              <h5>Não foi possível salvar o endereço:</h5>
+
+              <ul class="mb-0">
+                <% @address.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <%= form_with model: @address, url: addresses_path, local: true do |f| %>
+            <div class="mb-3">
+              <%= f.label :street, "Rua", class: "form-label fw-bold" %>
+              <%= f.text_field :street, class: "form-control", placeholder: "Ex: Rua das Flores" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :number, "Número", class: "form-label fw-bold" %>
+              <%= f.text_field :number, class: "form-control", placeholder: "Ex: 123" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :neighborhood, "Bairro", class: "form-label fw-bold" %>
+              <%= f.text_field :neighborhood, class: "form-control" %>
+            </div>
+
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <%= f.label :city, "Cidade", class: "form-label fw-bold" %>
+                <%= f.text_field :city, class: "form-control" %>
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <%= f.label :state, "Estado", class: "form-label fw-bold" %>
+                <%= f.text_field :state, class: "form-control", maxlength: 2, placeholder: "SP" %>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <%= f.label :zipcode, "CEP", class: "form-label fw-bold" %>
+              <%= f.text_field :zipcode, class: "form-control", placeholder: "00000-000" %>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= f.submit "Salvar endereço", class: "btn btn-primary" %>
+              <%= link_to "Voltar", cart_path, class: "btn btn-outline-secondary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+    </div>
   </div>
-
-  <div>
-    <%= f.label :number, "Número" %>
-    <%= f.text_field :number %>
-  </div>
-
-  <div>
-    <%= f.label :neighborhood, "Bairro" %>
-    <%= f.text_field :neighborhood %>
-  </div>
-
-  <div>
-    <%= f.label :city, "Cidade" %>
-    <%= f.text_field :city %>
-  </div>
-
-  <div>
-    <%= f.label :state, "Estado" %>
-    <%= f.text_field :state %>
-  </div>
-
-  <div>
-    <%= f.label :zipcode, "CEP" %>
-    <%= f.text_field :zipcode %>
-  </div>
-
-  <%= f.submit "Salvar endereço" %>
-<% end %>
+</div>

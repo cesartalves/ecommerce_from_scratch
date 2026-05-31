@@ -31,7 +31,7 @@ class OrdersController < ApplicationController
       item.save!
     end
 
-    order.recalculate!
+    current_user.cart_order.recalculate!
 
     redirect_back fallback_location: root_path
   end

@@ -6,12 +6,15 @@ class AddressController < ApplicationController
   end
 
   def create
-    @address = current_user.build_address(address_params)
+    @address = current_user.address || current_user.build_address
 
-    if @address.save
-      redirect_to root_path, notice: 'Endereço salvo com sucesso.'
+    binding.break
+
+    if @address.update(address_params)
+      redirect_to checkout_path, notice: "Endereço salvo com sucesso."
     else
-      render :new, status: :unprocessable_entity
+      flash[:alert] = "Erro ao salvar o endereço."
+      render :new
     end
   end
 
@@ -24,7 +27,7 @@ class AddressController < ApplicationController
       :neighborhood,
       :city,
       :state,
-      :zip_code
+      :zipcode
     )
   end
 end

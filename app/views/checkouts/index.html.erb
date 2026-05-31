@@ -63,11 +63,16 @@ Valor total: <%= @order.total %>
 <script src="https://sdk.mercadopago.com/js/v2"></script>
 
 <script>
-  const mp = new MercadoPago("<%= @public_key %>", {
-    locale: 'pt-BR'
-  });
+  let mp;
 
-  const cardForm = document.getElementById('card-form');
+  if (typeof MercadoPago === "undefined") {
+    alert("Mercado Pago ainda está carregando. Tente novamente.");
+  } else {
+    mp = new MercadoPago("<%= @public_key %>", {
+      locale: "pt-BR"
+    });
+
+    const cardForm = document.getElementById('card-form');
   const csrfToken = document
         .querySelector('meta[name="csrf-token"]')
         .getAttribute('content');
@@ -146,5 +151,6 @@ Valor total: <%= @order.total %>
         })
       }).then(response => window.location.replace("/pedidos"))
     });
-  });
+   });
+  }
 </script>
