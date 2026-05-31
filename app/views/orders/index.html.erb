@@ -1,16 +1,74 @@
-<h2>Meus Pedidos</h2>
+<div class="container py-5">
+  <h2 class="mb-4">Meus Pedidos</h2>
 
-<% current_user.orders.where.not(status: :cart).each do |order| %>
-<div class="fe-order-card">
-  ID do pedido: <%= order.id %>
-  Estado <%= order.status %>
-  Total: <%= order.total %>
-  <ul>
-  <% order.line_items.each do |li| %>
-    <li>Nome<%= li.product.name %></li>
-    <li>Valor<%= li.price %></li>
-    <li>Preço<%= image_tag li.product.image, width: 80 %></li>
+  <% orders = current_user.orders.where.not(status: :cart) %>
+
+  <% if orders.empty? %>
+    <div class="alert alert-info">
+      Você ainda não fez nenhum pedido.
+    </div>
+
+    <%= link_to "Ver produtos", products_path, class: "btn btn-primary" %>
+  <% else %>
+    <div class="row g-4">
+      <% orders.each do |order| %>
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <strong>Pedido #<%= order.id %></strong>
+              </div>
+
+              <span class="badge bg-secondary">
+                <%= order.status %>
+              </span>
+            </div>
+
+            <div class="card-body">
+              <% order.line_items.each do |li| %>
+                <div class="row align-items-center py-3 border-bottom">
+                  <div class="col-md-2">
+                    <% if li.product.image.attached? %>
+                      <%= image_tag li.product.image,
+                            class: "img-thumbnail",
+                            style: "max-width: 80px;" %>
+                    <% else %>
+                      <div class="bg-light border rounded text-muted d-flex align-items-center justify-content-center"
+                           style="width: 80px; height: 80px;">
+                        Sem imagem
+                      </div>
+                    <% end %>
+                  </div>
+
+                  <div class="col-md-6">
+                    <h5 class="mb-1">
+                      <%= li.product.name %>
+                    </h5>
+
+                    <small class="text-muted">
+                      Quantidade: <%= li.quantity %>
+                    </small>
+                  </div>
+
+                  <div class="col-md-4 text-md-end">
+                    <strong>
+                      <%= number_to_currency(li.price) %>
+                    </strong>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="d-flex justify-content-between align-items-center mt-4">
+                <span class="fw-bold">Total</span>
+
+                <h4 class="mb-0 text-primary">
+                  <%= number_to_currency(order.total) %>
+                </h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
   <% end %>
-  </ul>
-</div>  
-<% end %>
+</div>
