@@ -20,9 +20,16 @@ class MercadoPago::Client
     )
   end
 
+  def payment(external_id)
+    self.class.get(
+      "/v1/payments/#{external_id}",
+      headers: @headers.except("X-Idempotency-Key")
+    )
+  end
+
   private
 
   def access_token
-    ENV['MP_ACCESS_TOKEN']
+    ENV["MP_ACCESS_TOKEN"]
   end
 end

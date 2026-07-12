@@ -11,6 +11,14 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    ports:
+      - "6379:6379"
+
   web:
     build:
       context: .
@@ -23,12 +31,15 @@ services:
       - "3000:3000"
     depends_on:
       - db
+      - redis
     environment:
       POSTGRES_HOST: db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      REDIS_URL: redis://redis:6379/0
       RAILS_ENV: development
 
 volumes:
   pgdata:
+  redisdata:
   bundle_cache:

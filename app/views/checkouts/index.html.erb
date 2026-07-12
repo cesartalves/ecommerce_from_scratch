@@ -1,156 +1,276 @@
+<% content_for :title, "Pagamento" %>
 
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1">Pagamento</h2>
+          <p class="text-muted mb-0">Escolha como deseja pagar seu pedido.</p>
+        </div>
+        <div class="text-end">
+          <small class="text-muted d-block">Total do pedido</small>
+          <strong class="fs-3 text-primary"><%= number_to_currency(@order.total) %></strong>
+        </div>
+      </div>
 
-<h2>Pagamento</h2>
+      <div id="payment-form" class="card shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="card-title mb-3">Método de pagamento</h5>
 
-Valor total: <%= @order.total %>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="border rounded p-3 w-100 h-100 d-flex align-items-center gap-2">
+                <input class="form-check-input mt-0" type="radio" name="payment_method" value="card" checked>
+                <span class="fw-semibold">Cartão de crédito</span>
+              </label>
+            </div>
+            <div class="col-md-6">
+              <label class="border rounded p-3 w-100 h-100 d-flex align-items-center gap-2">
+                <input class="form-check-input mt-0" type="radio" name="payment_method" value="pix">
+                <span class="fw-semibold">Pix</span>
+              </label>
+            </div>
+          </div>
 
-<div id="payment-form">
-  <%= csrf_meta_tags %>
+          <div id="payment-error" class="alert alert-danger d-none" role="alert"></div>
 
-  <!-- Método de pagamento -->
-  <label>
-    <input type="radio" name="payment_method" value="card" checked>
-    Cartão de Crédito
-  </label>
+          <div id="card-form">
+            <h5 class="mb-3">Dados do cartão</h5>
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="cardNumber" class="form-label">Número do cartão</label>
+                <div id="cardNumber" class="form-control checkout-secure-field"></div>
+              </div>
+              <div class="col-12">
+                <label for="cardholderName" class="form-label">Nome no cartão</label>
+                <input type="text" id="cardholderName" class="form-control" autocomplete="cc-name" data-checkout="cardholderName" placeholder="Como está impresso no cartão">
+              </div>
+              <div class="col-md-6">
+                <label for="expirationDate" class="form-label">Validade</label>
+                <div id="expirationDate" class="form-control checkout-secure-field"></div>
+              </div>
+              <div class="col-md-6">
+                <label for="securityCode" class="form-label">CVV</label>
+                <div id="securityCode" class="form-control checkout-secure-field"></div>
+              </div>
+              <div class="col-12">
+                <label for="docNumber" class="form-label">CPF do titular</label>
+                <input type="text" id="docNumber" class="form-control" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00">
+              </div>
+            </div>
+          </div>
 
-  <label>
-    <input type="radio" name="payment_method" value="pix">
-    Pix
-    <div id="pix-area" style="display: none;">
-      <img id="pix-qrcode-img" style="width: 300px";/>
-      <pre id="pix-qrcode-text"></pre>
-    </div>
-    </div>
-  </label>
+          <div id="pix-intro" class="alert alert-info d-none mb-0">
+            Ao continuar, você receberá um QR Code e um código Pix copia e cola.
+          </div>
 
-  <!-- ===== CARTÃO ===== -->
-  <div id="card-form">
-    <div>
-      <label>Número do cartão</label>
-      <input type="text" id="cardNumber" data-checkout="cardNumber">
-    </div>
+          <div id="pix-area" class="text-center d-none">
+            <h5>Escaneie o QR Code para pagar</h5>
+            <p class="text-muted">A confirmação será feita automaticamente.</p>
+            <img id="pix-qrcode-img" class="img-fluid mb-3" width="300" height="300" alt="QR Code Pix">
+            <label for="pix-qrcode-text" class="form-label d-block text-start">Pix copia e cola</label>
+            <textarea id="pix-qrcode-text" class="form-control" rows="3" readonly></textarea>
+          </div>
 
-    <div>
-      <label>Nome no cartão</label>
-      <input type="text" id="cardholderName" data-checkout="cardholderName">
-    </div>
+          <input type="hidden" id="transaction_amount" value="<%= @order.total %>">
 
-    <div>
-      <label>Validade (MM/AA)</label>
-      <input type="text" id="cardExpirationMonth" size="2" data-checkout="cardExpirationMonth">
-      /
-      <input type="text" id="cardExpirationYear" size="4" data-checkout="cardExpirationYear">
-    </div>
-
-    <div>
-      <label>CVV</label>
-      <input type="text" id="securityCode" data-checkout="securityCode">
-    </div>
-
-    <div>
-      <label>Documento</label>
-      <input type="text" id="docNumber">
+          <div class="d-grid mt-4">
+            <button type="button" id="pagar" class="btn btn-primary btn-lg" disabled>
+              Carregando pagamento...
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <input type="hidden" name="token" id="token">
-  <input type="hidden" name="transaction_amount" id="transaction_amount" value="<%= @order.total %>">
-  <input type="hidden" name="description" value="Pedido #<%= @order.id %>">
-
-  <button id="pagar">Pagar</button>
 </div>
 
 <script src="https://sdk.mercadopago.com/js/v2"></script>
-
 <script>
-  let mp;
+  (() => {
+    const MAX_SDK_ATTEMPTS = 20;
+    const SDK_RETRY_DELAY = 250;
+    let sdkAttempts = 0;
+    let mp;
+    let paymentMethodId;
+    let issuerId;
+    let pixPaymentCreated = false;
+    let pixRequestInProgress = false;
 
-  if (typeof MercadoPago === "undefined") {
-    alert("Mercado Pago ainda está carregando. Tente novamente.");
-  } else {
-    mp = new MercadoPago("<%= @public_key %>", {
-      locale: "pt-BR"
-    });
+    const cardForm = document.getElementById("card-form");
+    const pixIntro = document.getElementById("pix-intro");
+    const pixArea = document.getElementById("pix-area");
+    const payButton = document.getElementById("pagar");
+    const errorBox = document.getElementById("payment-error");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-    const cardForm = document.getElementById('card-form');
-  const csrfToken = document
-        .querySelector('meta[name="csrf-token"]')
-        .getAttribute('content');
+    const errorMessage = (error) => {
+      if (typeof error === "string" && error.trim()) return error;
 
-  document.querySelectorAll('input[name="payment_method"]').forEach((radio) => {
-    radio.addEventListener('change', () => {
-      cardForm.style.display =
-        radio.value === 'card' && radio.checked ? 'block' : 'none';
-    });
-  });
+      const messages = [
+        error?.message,
+        error?.error?.message,
+        typeof error?.error === "string" ? error.error : undefined,
+        error?.cause?.[0]?.description,
+        error?.cause?.[0]?.message,
+        error?.errors?.[0]?.message
+      ];
 
-  document.getElementById('pagar').addEventListener('click', function (e) {
-    e.preventDefault();
+      return messages.find((message) => typeof message === "string" && message.trim()) ||
+        "Não foi possível processar o pagamento. Confira os dados e tente novamente.";
+    };
 
-    const selected = document.querySelector(
-      'input[name="payment_method"]:checked'
-    ).value;
+    const showError = (error) => {
+      errorBox.textContent = errorMessage(error);
+      errorBox.classList.remove("d-none");
+    };
 
-    if (selected !== 'card') {
-      fetch('/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
-        },
-        body: JSON.stringify({
-          payment_method: 'pix',
-          token: result.id,
-          transaction_amount: document.getElementById('transaction_amount').value,
-          installments: 1
-        })
-      }).then(response => response.json())
-        .then(data => {
-          console.log(data)
+    const setLoading = (loading) => {
+      payButton.disabled = loading;
+      payButton.textContent = loading ? "Processando..." : "Pagar agora";
+    };
 
-          document.getElementById('pix-area').style.display = 'block';
+    const postPayment = async (payload) => {
+      const response = await fetch("/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Não foi possível processar o pagamento.");
+      return data;
+    };
 
-          // Imagem do QR Code
-          document.getElementById('pix-qrcode-img').src = `data:image/png;base64,${data.qr_code_base64}`;
-
-          // Texto copia e cola
-          document.getElementById('pix-qrcode-text').innerText = data.qr_code;
-        });
-      
-      return
-    }
-
-    mp.createCardToken({
-      cardNumber: document.getElementById('cardNumber').value.replace(/\D/g, ''),
-      cardholderName: document.getElementById('cardholderName').value,
-      cardExpirationMonth: document.getElementById('cardExpirationMonth').value,
-      cardExpirationYear: document.getElementById('cardExpirationYear').value,
-      securityCode: document.getElementById('securityCode').value,
-      identificationType: 'CPF',
-      identificationNumber: document.getElementById('docNumber').value
-    }).then((result) => {
-      if (result.error) {
-        alert(result.error.message);
-        console.error(result);
+    const initializeMercadoPago = () => {
+      if (typeof MercadoPago === "undefined") {
+        sdkAttempts += 1;
+        if (sdkAttempts < MAX_SDK_ATTEMPTS) {
+          setTimeout(initializeMercadoPago, SDK_RETRY_DELAY);
+        } else {
+          showError("Não foi possível carregar o Mercado Pago. Atualize a página e tente novamente.");
+          payButton.textContent = "Pagamento indisponível";
+        }
         return;
       }
 
-      document.getElementById('token').value = result.id;
+      mp = new MercadoPago("<%= j @public_key %>", { locale: "pt-BR" });
 
-      fetch('/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
-        },
-        body: JSON.stringify({
-          payment_method: 'card',
-          token: result.id,
-          transaction_amount: document.getElementById('transaction_amount').value,
+      const cardNumberField = mp.fields.create("cardNumber", {
+        placeholder: "0000 0000 0000 0000"
+      }).mount("cardNumber");
+      mp.fields.create("expirationDate", { placeholder: "MM/AA" }).mount("expirationDate");
+      mp.fields.create("securityCode", { placeholder: "123" }).mount("securityCode");
+
+      cardNumberField.on("binChange", async ({ bin }) => {
+        paymentMethodId = undefined;
+        issuerId = undefined;
+        if (!bin) return;
+
+        try {
+          const { results } = await mp.getPaymentMethods({ bin });
+          const paymentMethod = results[0];
+          if (!paymentMethod) return;
+
+          paymentMethodId = paymentMethod.id;
+
+          if (paymentMethod.additional_info_needed?.includes("issuer_id")) {
+            const issuers = await mp.getIssuers({
+              paymentMethodId: paymentMethod.id,
+              bin: bin
+            });
+            issuerId = issuers[0]?.id;
+          } else {
+            issuerId = paymentMethod.issuer?.id;
+          }
+        } catch (error) {
+          showError("Não foi possível identificar a bandeira do cartão.");
+        }
+      });
+
+      payButton.disabled = false;
+      payButton.textContent = "Pagar agora";
+    };
+
+    const generatePixPayment = async () => {
+      if (pixPaymentCreated) {
+        pixIntro.classList.add("d-none");
+        pixArea.classList.remove("d-none");
+        return;
+      }
+      if (pixRequestInProgress) return;
+
+      pixRequestInProgress = true;
+      errorBox.classList.add("d-none");
+
+      try {
+        const data = await postPayment({
+          payment_method: "pix",
+          transaction_amount: document.getElementById("transaction_amount").value,
           installments: 1
-        })
-      }).then(response => window.location.replace("/pedidos"))
+        });
+        document.getElementById("pix-qrcode-img").src = `data:image/png;base64,${data.qr_code_base64}`;
+        document.getElementById("pix-qrcode-text").value = data.qr_code;
+        pixPaymentCreated = true;
+        pixIntro.classList.add("d-none");
+        pixArea.classList.remove("d-none");
+      } catch (error) {
+        console.error("Mercado Pago PIX checkout error:", error);
+        showError(error);
+      } finally {
+        pixRequestInProgress = false;
+      }
+    };
+
+    document.querySelectorAll('input[name="payment_method"]').forEach((radio) => {
+      radio.addEventListener("change", async () => {
+        const pixSelected = radio.checked && radio.value === "pix";
+        cardForm.classList.toggle("d-none", pixSelected);
+        pixIntro.classList.toggle("d-none", !pixSelected);
+        pixArea.classList.add("d-none");
+        errorBox.classList.add("d-none");
+        payButton.classList.toggle("d-none", pixSelected);
+
+        if (pixSelected) await generatePixPayment();
+      });
     });
-   });
-  }
+
+    payButton.addEventListener("click", async () => {
+      errorBox.classList.add("d-none");
+      setLoading(true);
+
+      try {
+        const transactionAmount = document.getElementById("transaction_amount").value;
+
+        if (!paymentMethodId) {
+          throw new Error("Confira o número do cartão antes de continuar.");
+        }
+
+        const token = await mp.fields.createCardToken({
+          cardholderName: document.getElementById("cardholderName").value,
+          identificationType: "CPF",
+          identificationNumber: document.getElementById("docNumber").value.replace(/\D/g, "")
+        });
+        if (token.error || !token.id) throw token;
+
+        await postPayment({
+          payment_method: "card",
+          token: token.id,
+          payment_method_id: paymentMethodId,
+          issuer_id: issuerId,
+          identification_number: document.getElementById("docNumber").value.replace(/\D/g, ""),
+          transaction_amount: transactionAmount,
+          installments: 1
+        });
+        window.location.replace("/pedidos");
+      } catch (error) {
+        console.error("Mercado Pago checkout error:", error);
+        showError(error);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    setTimeout(initializeMercadoPago, SDK_RETRY_DELAY);
+  })();
 </script>

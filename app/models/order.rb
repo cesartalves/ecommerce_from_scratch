@@ -1,6 +1,7 @@
 class Order < ApplicationRecord
   belongs_to :user
   has_many :line_items
+  has_many :payments, dependent: :destroy
 
   enum status: {
     pending: 0,
@@ -14,5 +15,12 @@ class Order < ApplicationRecord
   def recalculate!
     total = line_items.map { |li| li.quantity * li.product.price }.sum
     update!(total: total)
+  end
+
+  def complete!
+    transaction do
+      paid!
+      user.orders.find_or_create_by!(status: :cart)
+    end
   end
 end
