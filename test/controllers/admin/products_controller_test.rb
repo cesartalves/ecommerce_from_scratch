@@ -27,5 +27,7 @@ class Admin::ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Informações do produto"
     assert_includes response.body, "Nome do produto"
+    assert_includes response.body, "Peso (gramas)"
+    assert_includes response.body, "Comprimento (cm)"
   end
 end

@@ -24,6 +24,7 @@
           <tr>
             <th>Produto</th>
             <th>Descrição</th>
+            <th>Envio</th>
             <th>Preço</th>
             <th class="text-end">Ações</th>
           </tr>
@@ -44,6 +45,14 @@
                 </div>
               </td>
               <td data-label="Descrição" class="admin-table__description"><%= product.description.presence&.truncate(75) || "Sem descrição" %></td>
+              <td data-label="Envio">
+                <% if product.weight_grams.present? %>
+                  <span class="admin-table__primary"><%= product.weight_grams %> g</span>
+                  <small><%= product.length_cm %> × <%= product.width_cm %> × <%= product.height_cm %> cm</small>
+                <% else %>
+                  <span class="admin-badge admin-badge--warning">Dados pendentes</span>
+                <% end %>
+              </td>
               <td data-label="Preço"><strong><%= number_to_currency(product.price) %></strong></td>
               <td data-label="Ações">
                 <div class="admin-table-actions">

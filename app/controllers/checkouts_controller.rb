@@ -5,10 +5,13 @@ class CheckoutsController < ApplicationController
   def index
     @order = current_user.cart_order
     @public_key = ENV["MP_PUBLIC_KEY"]
+    load_shipping_quotes
   end
 
   def create
     @order = current_user.cart_order
+    return render_shipping_error unless apply_shipping
+
     client = MercadoPago::Client.new
 
     case params[:payment_method]
@@ -65,6 +68,58 @@ class CheckoutsController < ApplicationController
 
   private
 
+  def load_shipping_quotes
+    @subtotal = @order.items_total
+    @shipping_enabled = shipping_enabled?
+    unless @shipping_enabled
+      @shipping_quotes = []
+      @display_total = @subtotal
+      return
+    end
+
+    @shipping_quotes = shipping_client.quotes(
+      destination_zipcode: current_user.address.zipcode,
+      package: @order.shipping_package
+    )
+    @selected_shipping_code = if @shipping_quotes.any? { |quote| quote.service_code == @order.shipping_service_code }
+      @order.shipping_service_code
+    else
+      @shipping_quotes.first&.service_code
+    end
+    selected_quote = @shipping_quotes.find { |quote| quote.service_code == @selected_shipping_code }
+    @display_total = @subtotal + (selected_quote&.price || 0)
+  rescue Correios::Error => error
+    @shipping_quotes = []
+    @shipping_error = error.message
+    @display_total = @subtotal || @order.items_total
+  end
+
+  def apply_shipping
+    unless shipping_enabled?
+      @order.recalculate!
+      return true
+    end
+
+    quote = shipping_client.quote(
+      service_code: params[:shipping_service].to_s,
+      destination_zipcode: current_user.address.zipcode,
+      package: @order.shipping_package
+    )
+    @order.apply_shipping!(quote)
+    true
+  rescue Correios::Error => error
+    @shipping_error = error.message
+    false
+  end
+
+  def shipping_client
+    @shipping_client ||= Correios::Client.new
+  end
+
+  def shipping_enabled?
+    ActiveModel::Type::Boolean.new.cast(ENV.fetch("CORREIOS_SHIPPING_ENABLED", "false"))
+  end
+
   def create_payment_from(response, payment_method, pix_data: {})
     @order.payments.create!(
       external_id: response["id"].to_s,
@@ -85,6 +140,11 @@ class CheckoutsController < ApplicationController
 
   def render_payment_error(response)
     render json: { error: response["message"] || "Não foi possível processar o pagamento." },
+           status: :unprocessable_entity
+  end
+
+  def render_shipping_error
+    render json: { error: @shipping_error || "Selecione uma forma de entrega." },
            status: :unprocessable_entity
   end
 

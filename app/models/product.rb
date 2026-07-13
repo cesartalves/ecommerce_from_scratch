@@ -3,6 +3,8 @@ class Product < ApplicationRecord
 
   validates :price, numericality: { greater_than: 0 }
   validates :name, uniqueness: true
+  validates :weight_grams, numericality: { only_integer: true, greater_than: 0 }
+  validates :length_cm, :width_cm, :height_cm, numericality: { greater_than: 0 }
 
   def self.ransackable_attributes(auth_object = nil)
   [
@@ -12,6 +14,6 @@ class Product < ApplicationRecord
   end
 
   def self.ransackable_associations(auth_object = nil)
-    ["image_attachment", "image_blob"]
+    [ "image_attachment", "image_blob" ]
   end
 end

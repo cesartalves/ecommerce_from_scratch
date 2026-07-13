@@ -10,24 +10,67 @@
         </div>
         <div class="text-end">
           <small class="text-muted d-block">Total do pedido</small>
-          <strong class="fs-3 text-primary"><%= number_to_currency(@order.total) %></strong>
+          <strong id="checkout-total" class="fs-3 text-primary"><%= number_to_currency(@display_total) %></strong>
         </div>
       </div>
 
       <div id="payment-form" class="card shadow-sm">
         <div class="card-body p-4">
+          <h5 class="card-title mb-3">Entrega</h5>
+
+          <% if !@shipping_enabled %>
+            <div class="alert alert-info mb-4" role="status">
+              <strong>Frete temporariamente desativado.</strong>
+              <div>Nenhum valor de frete será cobrado neste pedido.</div>
+            </div>
+          <% elsif @shipping_error.present? %>
+            <div class="alert alert-danger" role="alert">
+              <strong>Não foi possível calcular o frete.</strong>
+              <div><%= @shipping_error %></div>
+            </div>
+          <% else %>
+            <div class="row g-3 mb-4" id="shipping-options">
+              <% @shipping_quotes.each do |quote| %>
+                <div class="col-md-6">
+                  <label class="border rounded p-3 w-100 h-100 d-flex align-items-start gap-3">
+                    <input class="form-check-input mt-1"
+                           type="radio"
+                           name="shipping_service"
+                           value="<%= quote.service_code %>"
+                           data-price="<%= quote.price %>"
+                           <%= "checked" if quote.service_code == @selected_shipping_code %>>
+                    <span class="flex-grow-1">
+                      <span class="d-flex justify-content-between gap-2 fw-semibold">
+                        <span>Correios <%= quote.service_name %></span>
+                        <span><%= number_to_currency(quote.price) %></span>
+                      </span>
+                      <small class="text-muted">
+                        Entrega estimada em <%= pluralize(quote.delivery_days, "dia útil", "dias úteis") %>
+                      </small>
+                    </span>
+                  </label>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+
+          <div class="d-flex justify-content-between border-top border-bottom py-3 mb-4">
+            <span class="text-muted">Produtos</span>
+            <strong><%= number_to_currency(@subtotal) %></strong>
+          </div>
+
           <h5 class="card-title mb-3">Método de pagamento</h5>
 
           <div class="row g-3 mb-4">
             <div class="col-md-6">
               <label class="border rounded p-3 w-100 h-100 d-flex align-items-center gap-2">
-                <input class="form-check-input mt-0" type="radio" name="payment_method" value="card" checked>
+                <input class="form-check-input mt-0" type="radio" name="payment_method" value="card" checked <%= "disabled" if @shipping_error.present? %>>
                 <span class="fw-semibold">Cartão de crédito</span>
               </label>
             </div>
             <div class="col-md-6">
               <label class="border rounded p-3 w-100 h-100 d-flex align-items-center gap-2">
-                <input class="form-check-input mt-0" type="radio" name="payment_method" value="pix">
+                <input class="form-check-input mt-0" type="radio" name="payment_method" value="pix" <%= "disabled" if @shipping_error.present? %>>
                 <span class="fw-semibold">Pix</span>
               </label>
             </div>
@@ -73,7 +116,7 @@
             <textarea id="pix-qrcode-text" class="form-control" rows="3" readonly></textarea>
           </div>
 
-          <input type="hidden" id="transaction_amount" value="<%= @order.total %>">
+          <input type="hidden" id="transaction_amount" value="<%= @display_total %>">
 
           <div class="d-grid mt-4">
             <button type="button" id="pagar" class="btn btn-primary btn-lg" disabled>
@@ -104,6 +147,25 @@
     const payButton = document.getElementById("pagar");
     const errorBox = document.getElementById("payment-error");
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const subtotal = <%= @subtotal.to_f %>;
+    const shippingRequired = <%= @shipping_enabled %>;
+    const shippingAvailable = !shippingRequired || <%= @shipping_error.blank? %>;
+    const shippingRadios = document.querySelectorAll('input[name="shipping_service"]');
+
+    const selectedShippingService = () =>
+      document.querySelector('input[name="shipping_service"]:checked')?.value;
+
+    const updateTotal = () => {
+      const selected = document.querySelector('input[name="shipping_service"]:checked');
+      if (!selected) return;
+
+      const total = subtotal + Number(selected.dataset.price);
+      document.getElementById("transaction_amount").value = total.toFixed(2);
+      document.getElementById("checkout-total").textContent = total.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    };
 
     const errorMessage = (error) => {
       if (typeof error === "string" && error.trim()) return error;
@@ -188,11 +250,16 @@
         }
       });
 
-      payButton.disabled = false;
-      payButton.textContent = "Pagar agora";
+      payButton.disabled = !shippingAvailable;
+      payButton.textContent = shippingAvailable ? "Pagar agora" : "Frete indisponível";
     };
 
     const generatePixPayment = async () => {
+      if (shippingRequired && !selectedShippingService()) {
+        showError("Selecione uma forma de entrega.");
+        return;
+      }
+
       if (pixPaymentCreated) {
         pixIntro.classList.add("d-none");
         pixArea.classList.remove("d-none");
@@ -206,12 +273,14 @@
       try {
         const data = await postPayment({
           payment_method: "pix",
+          shipping_service: selectedShippingService(),
           transaction_amount: document.getElementById("transaction_amount").value,
           installments: 1
         });
         document.getElementById("pix-qrcode-img").src = `data:image/png;base64,${data.qr_code_base64}`;
         document.getElementById("pix-qrcode-text").value = data.qr_code;
         pixPaymentCreated = true;
+        shippingRadios.forEach((radio) => { radio.disabled = true; });
         pixIntro.classList.add("d-none");
         pixArea.classList.remove("d-none");
       } catch (error) {
@@ -255,6 +324,7 @@
 
         await postPayment({
           payment_method: "card",
+          shipping_service: selectedShippingService(),
           token: token.id,
           payment_method_id: paymentMethodId,
           issuer_id: issuerId,
@@ -270,6 +340,9 @@
         setLoading(false);
       }
     });
+
+    shippingRadios.forEach((radio) => radio.addEventListener("change", updateTotal));
+    updateTotal();
 
     setTimeout(initializeMercadoPago, SDK_RETRY_DELAY);
   })();

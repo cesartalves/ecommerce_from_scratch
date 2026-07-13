@@ -12,10 +12,34 @@ class Order < ApplicationRecord
   }
 
   validates :total, numericality: { greater_than_or_equal_to: 0 }
+  validates :shipping_cost, numericality: { greater_than_or_equal_to: 0 }
+
+  def items_total
+    line_items.sum { |line_item| line_item.quantity * line_item.product.price }
+  end
 
   def recalculate!
-    total = line_items.map { |li| li.quantity * li.product.price }.sum
-    update!(total: total)
+    update!(
+      total: items_total,
+      shipping_cost: 0,
+      shipping_service: nil,
+      shipping_service_code: nil,
+      shipping_days: nil
+    )
+  end
+
+  def shipping_package
+    Correios::Package.from_line_items(line_items.includes(:product))
+  end
+
+  def apply_shipping!(quote)
+    update!(
+      shipping_cost: quote.price,
+      shipping_service: quote.service_name,
+      shipping_service_code: quote.service_code,
+      shipping_days: quote.delivery_days,
+      total: items_total + quote.price
+    )
   end
 
   def latest_pix_payment
