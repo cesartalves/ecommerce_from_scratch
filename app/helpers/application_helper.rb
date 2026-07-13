@@ -8,7 +8,10 @@ module ApplicationHelper
   }.freeze
 
   def order_status_label(order)
-    ORDER_STATUS_LABELS.fetch(order.status, order.status.humanize)
+    status = order.status
+    return "Status desconhecido" if status.blank?
+
+    ORDER_STATUS_LABELS.fetch(status) { status.humanize }
   end
 
   def order_status_badge_class(order)
