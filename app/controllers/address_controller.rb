@@ -8,8 +8,6 @@ class AddressController < ApplicationController
   def create
     @address = current_user.address || current_user.build_address
 
-    binding.break
-
     if @address.update(address_params)
       redirect_to checkout_path, notice: "Endereço salvo com sucesso."
     else

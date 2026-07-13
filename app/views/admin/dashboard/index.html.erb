@@ -1,8 +1,88 @@
-Logado como: <%= current_user.email %>
+<% content_for :title, "Visão geral" %>
 
-<br>
+<div class="admin-page-heading">
+  <div>
+    <span class="admin-eyebrow">Painel administrativo</span>
+    <h1>Visão geral</h1>
+    <p>Acompanhe os principais números e movimentos da sua loja.</p>
+  </div>
+  <%= link_to "Cadastrar produto", new_admin_product_path, class: "admin-button admin-button--primary" %>
+</div>
 
-Pedidos finalizados: <%= Order.paid.count %>
+<section class="admin-stats" aria-label="Resumo da loja">
+  <article class="admin-stat-card admin-stat-card--revenue">
+    <span class="admin-stat-card__icon">R$</span>
+    <div>
+      <span class="admin-stat-card__label">Receita confirmada</span>
+      <strong><%= number_to_currency(@revenue) %></strong>
+      <small>Pedidos pagos</small>
+    </div>
+  </article>
+  <article class="admin-stat-card">
+    <span class="admin-stat-card__icon">✓</span>
+    <div>
+      <span class="admin-stat-card__label">Pedidos pagos</span>
+      <strong><%= @paid_orders_count %></strong>
+      <small>Vendas concluídas</small>
+    </div>
+  </article>
+  <article class="admin-stat-card">
+    <span class="admin-stat-card__icon">◷</span>
+    <div>
+      <span class="admin-stat-card__label">Aguardando PIX</span>
+      <strong><%= @waiting_orders_count %></strong>
+      <small>Pagamentos pendentes</small>
+    </div>
+  </article>
+  <article class="admin-stat-card">
+    <span class="admin-stat-card__icon">◇</span>
+    <div>
+      <span class="admin-stat-card__label">Produtos</span>
+      <strong><%= @products_count %></strong>
+      <small>Itens cadastrados</small>
+    </div>
+  </article>
+</section>
 
-<%= link_to 'Editar Produtos', admin_products_path %>
-<%= link_to 'Ver Pedidos', admin_orders_path %>
+<section class="admin-panel">
+  <div class="admin-panel__header">
+    <div>
+      <h2>Pedidos recentes</h2>
+      <p>Últimas movimentações de clientes.</p>
+    </div>
+    <%= link_to "Ver todos", admin_orders_path, class: "admin-text-link" %>
+  </div>
+
+  <% if @recent_orders.any? %>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_orders.each do |order| %>
+            <tr>
+              <td><strong>#<%= order.id %></strong></td>
+              <td><%= order.user.email %></td>
+              <td><%= order.created_at.strftime("%d/%m/%Y") %></td>
+              <td><span class="admin-badge <%= order_status_badge_class(order) %>"><%= order_status_label(order) %></span></td>
+              <td class="text-end"><strong><%= number_to_currency(order.total) %></strong></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="admin-empty-state">
+      <span>▤</span>
+      <h3>Nenhum pedido por enquanto</h3>
+      <p>Os novos pedidos aparecerão aqui.</p>
+    </div>
+  <% end %>
+</section>

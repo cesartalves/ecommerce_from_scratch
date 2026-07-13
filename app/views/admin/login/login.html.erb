@@ -1,19 +1,37 @@
-<h2>Admin Login</h2>
+<% content_for :title, "Entrar" %>
 
-<%= form_with url: admin_login_path, scope: :user, method: :post do |f| %>
-
-  <div>
-    <%= f.label :email %><br>
-    <%= f.email_field :email, required: true %>
+<section class="admin-login-card">
+  <div class="admin-login-card__brand">
+    <span class="admin-brand__mark admin-brand__mark--large">CC</span>
+    <span>Painel administrativo</span>
   </div>
 
-  <div>
-    <%= f.label :password %><br>
-    <%= f.password_field :password, required: true %>
+  <div class="admin-login-card__heading">
+    <span class="admin-eyebrow">Acesso seguro</span>
+    <h1>Bem-vindo de volta</h1>
+    <p>Entre com sua conta administrativa para gerenciar a loja.</p>
   </div>
 
-  <div>
-    <%= f.submit "Login" %>
-  </div>
+  <%= form_with url: admin_login_path, scope: :user, method: :post, class: "admin-form" do |form| %>
+    <div class="admin-field">
+      <%= form.label :email, "E-mail" %>
+      <%= form.email_field :email,
+            required: true,
+            autofocus: true,
+            autocomplete: "email",
+            placeholder: "admin@exemplo.com" %>
+    </div>
 
-<% end %>
+    <div class="admin-field">
+      <%= form.label :password, "Senha" %>
+      <%= form.password_field :password,
+            required: true,
+            autocomplete: "current-password",
+            placeholder: "Digite sua senha" %>
+    </div>
+
+    <%= form.submit "Entrar no painel", class: "admin-button admin-button--primary admin-button--block" %>
+  <% end %>
+
+  <%= link_to "← Voltar para a loja", root_path, class: "admin-login-card__back" %>
+</section>

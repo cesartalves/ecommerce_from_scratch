@@ -2,10 +2,10 @@
 
 one:
   total: 9.99
-  status: 1
+  status: paid
   user: one
 
 two:
   total: 9.99
-  status: 1
+  status: paid
   user: two

@@ -6,21 +6,19 @@ class Admin::LoginController < ApplicationController
   end
 
   def create
-    # Find user by email
     @user = User.find_by(email: params[:user][:email])
 
-    # Validate credentials using Devise method + admin check
     if @user && @user.valid_password?(params[:user][:password]) && @user.admin?
       sign_in(@user)
-      redirect_to admin_dashboard_path, notice: "Welcome, admin!"
+      redirect_to admin_dashboard_path, notice: "Bem-vindo ao painel administrativo."
     else
-      flash[:alert] = "Invalid credentials or not an admin."
+      flash.now[:alert] = "E-mail ou senha inválidos, ou usuário sem acesso administrativo."
       render :login, status: :unauthorized
     end
   end
 
   def destroy
     sign_out(current_user)
-    redirect_to admin_login_path, notice: "Logged out."
+    redirect_to admin_login_path, notice: "Sessão encerrada com sucesso."
   end
 end

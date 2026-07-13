@@ -1,6 +1,54 @@
+<% content_for :title, "Pedidos" %>
 
-<% @orders.each do |order| %>
-  <p><%= order.user.email %></p>
-  <p><%= order.total %></p>
-  <p><%= order.status %></p>
-<% end %>
+<div class="admin-page-heading">
+  <div>
+    <span class="admin-eyebrow">Vendas</span>
+    <h1>Pedidos</h1>
+    <p>Consulte pagamentos e acompanhe todos os pedidos da loja.</p>
+  </div>
+  <span class="admin-count"><%= @orders.size %> pedidos</span>
+</div>
+
+<section class="admin-panel">
+  <% if @orders.any? %>
+    <div class="admin-table-wrap">
+      <table class="admin-table admin-table--orders">
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Data</th>
+            <th>Pagamento</th>
+            <th>Status</th>
+            <th class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @orders.each do |order| %>
+            <% payment = order.payments.max_by(&:created_at) %>
+            <tr>
+              <td data-label="Pedido"><strong>#<%= order.id %></strong></td>
+              <td data-label="Cliente">
+                <span class="admin-table__primary"><%= order.user.email %></span>
+                <small>Cliente #<%= order.user_id %></small>
+              </td>
+              <td data-label="Data">
+                <span class="admin-table__primary"><%= order.created_at.strftime("%d/%m/%Y") %></span>
+                <small><%= order.created_at.strftime("%H:%M") %></small>
+              </td>
+              <td data-label="Pagamento"><%= payment&.payment_method == "pix" ? "PIX" : payment&.payment_method&.upcase || "—" %></td>
+              <td data-label="Status"><span class="admin-badge <%= order_status_badge_class(order) %>"><%= order_status_label(order) %></span></td>
+              <td data-label="Total" class="text-end"><strong><%= number_to_currency(order.total) %></strong></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="admin-empty-state">
+      <span>▤</span>
+      <h3>Nenhum pedido encontrado</h3>
+      <p>Os pedidos feitos na loja aparecerão nesta página.</p>
+    </div>
+  <% end %>
+</section>

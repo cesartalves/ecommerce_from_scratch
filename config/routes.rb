@@ -18,8 +18,8 @@ Rails.application.routes.draw do
     delete 'logout', to: 'login#destroy'
 
     get '/', to: 'dashboard#index', as: :dashboard
-    resources :products
-    resources :orders
+    resources :products, except: :show
+    resources :orders, only: :index
   end
 
   devise_for :users, controllers: {

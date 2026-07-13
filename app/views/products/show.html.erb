@@ -1,12 +1,51 @@
-<h3><%= @product.name %></h3>
-<p><%= @product.description %></p>
+<main class="product-detail-page">
+  <div class="container py-5">
+    <article class="product-detail-card">
+      <div class="product-detail-layout">
+        <div class="product-detail-image-wrapper">
+          <% if @product.image.attached? %>
+            <%= image_tag @product.image,
+                  class: "product-detail-image",
+                  width: 220,
+                  alt: @product.name %>
+          <% else %>
+            <div class="product-detail-image-placeholder">
+              <span aria-hidden="true">&#128247;</span>
+              <p>Imagem indisponível</p>
+            </div>
+          <% end %>
+        </div>
 
-<%= image_tag @product.image if @product.image.attached? %>
+        <div class="product-detail-content">
+          <p class="product-detail-eyebrow">Peça para sua coleção</p>
+          <h1 class="product-detail-title"><%= @product.name %></h1>
 
-<h2>Valor:</h2> R$<%= @product.price %>
+          <div class="product-detail-divider"></div>
 
-<%= button_to "Adicionar ao carrinho",
-        add_product_path(product_id: @product.id),
-        method: :post,
-        class: "add-to-cart" %>
-</div>
+          <p class="product-detail-description">
+            <%= @product.description.presence || "Sem descrição disponível." %>
+          </p>
+
+          <div class="product-detail-purchase">
+            <span class="product-detail-price-label">Preço</span>
+            <p class="product-detail-price">
+              <%= number_to_currency(@product.price,
+                    unit: "R$ ",
+                    separator: ",",
+                    delimiter: ".") %>
+            </p>
+
+            <%= button_to "Adicionar ao carrinho",
+                  add_product_path(product_id: @product.id),
+                  method: :post,
+                  class: "btn btn-primary btn-lg w-100 add-to-cart" %>
+
+            <p class="product-detail-security-note mb-0">
+              Compra segura e pagamento protegido
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</main>

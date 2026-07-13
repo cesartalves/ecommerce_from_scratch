@@ -1,7 +1,11 @@
 class OrdersController < ApplicationController
   before_action :authenticate_user!
-  def index
 
+  def index
+    @orders = current_user.orders
+                          .where(status: %i[paid waiting_payment])
+                          .includes(:payments)
+                          .order(created_at: :desc)
   end
 
   def add

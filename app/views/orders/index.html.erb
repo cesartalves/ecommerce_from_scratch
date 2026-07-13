@@ -1,9 +1,7 @@
 <div class="container py-5">
   <h2 class="mb-4">Meus Pedidos</h2>
 
-  <% orders = current_user.orders.where.not(status: :cart) %>
-
-  <% if orders.empty? %>
+  <% if @orders.empty? %>
     <div class="alert alert-info">
       Você ainda não fez nenhum pedido.
     </div>
@@ -11,7 +9,7 @@
     <%= link_to "Ver produtos", products_path, class: "btn btn-primary" %>
   <% else %>
     <div class="row g-4">
-      <% orders.each do |order| %>
+      <% @orders.each do |order| %>
         <div class="col-12">
           <div class="card shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -20,11 +18,36 @@
               </div>
 
               <span class="badge bg-secondary">
-                <%= order.status %>
+                <%= order_status_label(order) %>
               </span>
             </div>
 
             <div class="card-body">
+              <% if order.waiting_payment? && (pix_payment = order.latest_pix_payment) %>
+                <div class="mb-4 rounded border bg-light p-4 text-center">
+                  <h5>Pagamento via PIX</h5>
+                  <p class="text-muted">Escaneie o QR Code ou use o código copia e cola.</p>
+
+                  <% if pix_payment.pix_qr_code_base64.present? %>
+                    <%= image_tag "data:image/png;base64,#{pix_payment.pix_qr_code_base64}",
+                          alt: "QR Code PIX do pedido ##{order.id}",
+                          class: "img-fluid mb-3",
+                          style: "max-width: 220px;" %>
+                  <% end %>
+
+                  <% if pix_payment.pix_qr_code.present? %>
+                    <label class="form-label fw-bold" for="pix-code-<%= order.id %>">
+                      PIX copia e cola
+                    </label>
+                    <input id="pix-code-<%= order.id %>"
+                           class="form-control"
+                           type="text"
+                           value="<%= pix_payment.pix_qr_code %>"
+                           readonly>
+                  <% end %>
+                </div>
+              <% end %>
+
               <% order.line_items.each do |li| %>
                 <div class="row align-items-center py-3 border-bottom">
                   <div class="col-md-2">

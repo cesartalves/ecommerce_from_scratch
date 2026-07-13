@@ -1,16 +1,60 @@
-<%= form_with model: @product, local: true do |f| %>
+<% if product.errors.any? %>
+  <div class="admin-form-errors" role="alert">
+    <strong><%= pluralize(product.errors.count, "erro") %> impediram o salvamento:</strong>
+    <ul>
+      <% product.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
 
-  <%= f.label :name %>
-  <%= f.text_field :name %>
+<%= form_with model: [:admin, product], local: true, class: "admin-form" do |form| %>
+  <div class="admin-form-grid">
+    <div class="admin-field admin-field--wide">
+      <%= form.label :name, "Nome do produto" %>
+      <%= form.text_field :name,
+            required: true,
+            autofocus: true,
+            placeholder: "Ex.: Moeda comemorativa de prata" %>
+      <small>Use um nome curto e fácil de identificar.</small>
+    </div>
 
-  <%= f.label :description %>
-  <%= f.text_area :description %>
+    <div class="admin-field admin-field--wide">
+      <%= form.label :description, "Descrição" %>
+      <%= form.text_area :description,
+            rows: 6,
+            placeholder: "Conte os detalhes, estado de conservação e história da peça." %>
+    </div>
 
-  <%= f.label :image %>
-  <%= f.file_field :image %>
+    <div class="admin-field">
+      <%= form.label :price, "Preço" %>
+      <div class="admin-money-input">
+        <span>R$</span>
+        <%= form.number_field :price, min: 0.01, step: 0.01, required: true, placeholder: "0,00" %>
+      </div>
+    </div>
 
-  <%= f.label :price %>
-  <%= f.text_field :price %>
+    <div class="admin-field">
+      <%= form.label :image, "Imagem" %>
+      <%= form.file_field :image, accept: "image/png,image/jpeg,image/webp" %>
+      <small>PNG, JPG ou WEBP.</small>
+    </div>
+  </div>
 
-  <%= f.submit %>
+  <% if product.image.attached? %>
+    <div class="admin-current-image">
+      <%= image_tag product.image, alt: product.name %>
+      <div>
+        <strong>Imagem atual</strong>
+        <small>Envie um novo arquivo apenas se quiser substituí-la.</small>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="admin-form-actions">
+    <%= form.submit product.persisted? ? "Salvar alterações" : "Cadastrar produto",
+          class: "admin-button admin-button--primary" %>
+    <%= link_to "Cancelar", admin_products_path, class: "admin-button admin-button--secondary" %>
+  </div>
 <% end %>

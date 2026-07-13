@@ -3,11 +3,12 @@ class Order < ApplicationRecord
   has_many :line_items
   has_many :payments, dependent: :destroy
 
-  enum status: {
-    pending: 0,
-    paid: 1,
-    cancelled: 2,
-    cart: 3
+  enum :status, {
+    pending: "pending",
+    waiting_payment: "waiting_payment",
+    paid: "paid",
+    cancelled: "cancelled",
+    cart: "cart"
   }
 
   validates :total, numericality: { greater_than_or_equal_to: 0 }
@@ -15,6 +16,10 @@ class Order < ApplicationRecord
   def recalculate!
     total = line_items.map { |li| li.quantity * li.product.price }.sum
     update!(total: total)
+  end
+
+  def latest_pix_payment
+    payments.select(&:pix?).max_by(&:created_at)
   end
 
   def complete!

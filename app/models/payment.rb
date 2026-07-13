@@ -13,4 +13,16 @@ class Payment < ApplicationRecord
   def awaiting_confirmation?
     status.in?(PENDING_STATUSES)
   end
+
+  def pix?
+    payment_method == "pix"
+  end
+
+  def pix_qr_code
+    pix_data["qr_code"]
+  end
+
+  def pix_qr_code_base64
+    pix_data["qr_code_base64"]
+  end
 end

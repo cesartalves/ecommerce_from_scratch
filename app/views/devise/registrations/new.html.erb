@@ -1,29 +1,55 @@
-<h2>Sign up</h2>
+<div class="container">
+  <div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <p class="text-center text-primary fw-bold fs-4 mb-1">cesarcolecionismo</p>
+          <h1 class="text-center h3 mb-4">Criar conta</h1>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+          <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+            <%= render "devise/shared/error_messages", resource: resource %>
 
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+            <div class="mb-3">
+              <%= f.label :email, class: "form-label" %>
+              <%= f.email_field :email,
+                    autofocus: true,
+                    autocomplete: "email",
+                    required: true,
+                    class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password, "Senha", class: "form-label" %>
+              <% if @minimum_password_length %>
+                <div class="form-text mb-1">Mínimo de <%= @minimum_password_length %> caracteres</div>
+              <% end %>
+              <%= f.password_field :password,
+                    autocomplete: "new-password",
+                    required: true,
+                    class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password_confirmation, "Confirme sua senha", class: "form-label" %>
+              <%= f.password_field :password_confirmation,
+                    autocomplete: "new-password",
+                    required: true,
+                    class: "form-control" %>
+            </div>
+
+            <div class="d-grid">
+              <%= f.submit "Criar conta", class: "btn btn-primary" %>
+            </div>
+
+            <hr>
+
+            <p class="text-center mb-0">
+              Já tem uma conta?
+              <%= link_to "Fazer login", new_user_session_path %>
+            </p>
+          <% end %>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div class="field">
-    <%= f.label :password %>
-    <% if @minimum_password_length %>
-    <em>(<%= @minimum_password_length %> characters minimum)</em>
-    <% end %><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Sign up" %>
-  </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_12_000000) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_13_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -69,7 +69,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_12_000000) do
 
   create_table "orders", force: :cascade do |t|
     t.decimal "total", precision: 10, scale: 2, default: "0.0", null: false
-    t.integer "status", default: 0, null: false
+    t.string "status", default: "pending", null: false
     t.bigint "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -83,6 +83,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_12_000000) do
     t.string "status", default: "pending", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "pix_data", default: {}, null: false
     t.index ["external_id"], name: "index_payments_on_external_id", unique: true
     t.index ["order_id"], name: "index_payments_on_order_id"
   end

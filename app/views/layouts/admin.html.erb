@@ -1,23 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
   <head>
-    <title><%= content_for(:title) || "Ecommerce From Scratch" %></title>
+    <title><%= content_for(:title) || "Painel administrativo" %> · Cesar Colecionismo</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
     <%= yield :head %>
-
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="admin-body">
+    <% if current_user&.admin? %>
+      <div class="admin-shell">
+        <aside class="admin-sidebar">
+          <%= link_to admin_dashboard_path, class: "admin-brand" do %>
+            <span class="admin-brand__mark">CC</span>
+            <span>
+              <strong>Cesar</strong>
+              <small>Colecionismo</small>
+            </span>
+          <% end %>
+
+          <nav class="admin-nav" aria-label="Navegação administrativa">
+            <span class="admin-nav__label">Menu</span>
+            <%= link_to admin_dashboard_path,
+                  class: class_names("admin-nav__link", active: controller_name == "dashboard") do %>
+              <span class="admin-nav__icon" aria-hidden="true">⌂</span>
+              Visão geral
+            <% end %>
+            <%= link_to admin_products_path,
+                  class: class_names("admin-nav__link", active: controller_name == "products") do %>
+              <span class="admin-nav__icon" aria-hidden="true">◇</span>
+              Produtos
+            <% end %>
+            <%= link_to admin_orders_path,
+                  class: class_names("admin-nav__link", active: controller_name == "orders") do %>
+              <span class="admin-nav__icon" aria-hidden="true">▤</span>
+              Pedidos
+            <% end %>
+            <%= link_to root_path, class: "admin-nav__link", target: "_blank", rel: "noopener" do %>
+              <span class="admin-nav__icon" aria-hidden="true">↗</span>
+              Ver loja
+            <% end %>
+          </nav>
+
+          <div class="admin-sidebar__footer">
+            <div class="admin-user">
+              <span class="admin-user__avatar"><%= current_user.email.first.upcase %></span>
+              <span class="admin-user__details">
+                <strong>Administrador</strong>
+                <small><%= current_user.email %></small>
+              </span>
+            </div>
+            <%= button_to admin_logout_path,
+                  method: :delete,
+                  class: "admin-logout",
+                  form_class: "admin-logout-form" do %>
+              Sair da conta
+            <% end %>
+          </div>
+        </aside>
+
+        <main class="admin-main">
+          <header class="admin-mobile-header">
+            <%= link_to "CC", admin_dashboard_path, class: "admin-mobile-brand" %>
+            <span>Painel administrativo</span>
+          </header>
+
+          <div class="admin-content">
+            <% flash.each do |type, message| %>
+              <div class="admin-flash admin-flash--<%= type == "alert" ? "danger" : "success" %>" role="alert">
+                <%= message %>
+              </div>
+            <% end %>
+            <%= yield %>
+          </div>
+        </main>
+      </div>
+    <% else %>
+      <main class="admin-auth-shell">
+        <% flash.each do |type, message| %>
+          <div class="admin-flash admin-flash--<%= type == "alert" ? "danger" : "success" %>" role="alert">
+            <%= message %>
+          </div>
+        <% end %>
+        <%= yield %>
+      </main>
+    <% end %>
   </body>
 </html>

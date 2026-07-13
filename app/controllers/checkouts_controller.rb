@@ -50,13 +50,13 @@ class CheckoutsController < ApplicationController
 
       return render_payment_error(response) unless response.code == 201
 
-      payment = create_payment_from(response, "pix")
+      transaction_data = response.dig("point_of_interaction", "transaction_data") || {}
+      payment = create_payment_from(response, "pix", pix_data: transaction_data)
       process_payment_status(payment)
 
-      transaction_data = response.dig("point_of_interaction", "transaction_data")
       render json: {
-        qr_code: transaction_data["qr_code"],
-        qr_code_base64: transaction_data["qr_code_base64"]
+        qr_code: payment.pix_qr_code,
+        qr_code_base64: payment.pix_qr_code_base64
       }
     else
       render json: { error: "Método de pagamento inválido." }, status: :unprocessable_entity
@@ -65,11 +65,12 @@ class CheckoutsController < ApplicationController
 
   private
 
-  def create_payment_from(response, payment_method)
+  def create_payment_from(response, payment_method, pix_data: {})
     @order.payments.create!(
       external_id: response["id"].to_s,
       payment_method: payment_method,
-      status: response["status"]
+      status: response["status"],
+      pix_data: pix_data
     )
   end
 
@@ -77,6 +78,7 @@ class CheckoutsController < ApplicationController
     if payment.approved?
       @order.complete!
     elsif payment.awaiting_confirmation?
+      @order.waiting_payment! if payment.payment_method == "pix"
       CheckPaymentStatusJob.perform_later(payment)
     end
   end

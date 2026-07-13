@@ -14,7 +14,7 @@ class CheckPaymentStatusJobTest < ActiveJob::TestCase
 
   setup do
     @order = orders(:one)
-    @order.update!(status: :pending)
+    @order.update!(status: :waiting_payment)
     @payment = Payment.create!(
       order: @order,
       external_id: "123456789",
@@ -52,7 +52,7 @@ class CheckPaymentStatusJobTest < ActiveJob::TestCase
     end
 
     assert_equal "pending", @payment.reload.status
-    assert_predicate @order.reload, :pending?
+    assert_predicate @order.reload, :waiting_payment?
   end
 
   test "does not schedule another check for a rejected payment" do
@@ -68,6 +68,6 @@ class CheckPaymentStatusJobTest < ActiveJob::TestCase
     end
 
     assert_equal "rejected", @payment.reload.status
-    assert_predicate @order.reload, :pending?
+    assert_predicate @order.reload, :waiting_payment?
   end
 end

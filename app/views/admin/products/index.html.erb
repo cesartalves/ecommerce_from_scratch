@@ -1,36 +1,71 @@
-<h1>Products</h1>
+<% content_for :title, "Produtos" %>
 
-<%= link_to "New Product", new_admin_product_path %>
+<div class="admin-page-heading">
+  <div>
+    <span class="admin-eyebrow">Catálogo</span>
+    <h1>Produtos</h1>
+    <p>Gerencie as peças disponíveis na sua loja.</p>
+  </div>
+  <%= link_to "Cadastrar produto", new_admin_product_path, class: "admin-button admin-button--primary" %>
+</div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Image</th>
-      <th>Price</th>
-      <th></th>
-    </tr>
-  </thead>
+<section class="admin-panel">
+  <div class="admin-panel__header admin-panel__header--compact">
+    <div>
+      <h2>Catálogo</h2>
+      <p><%= pluralize(@products.size, "produto cadastrado", "produtos cadastrados") %></p>
+    </div>
+  </div>
 
-  <tbody>
-    <% @products.each do |product| %>
-      <tr>
-        <td><%= product.name %></td>
-        <td><%= product.description.truncate(60) %></td>
-        <td>
-          <% if product.image.attached? %>
-            <%= image_tag product.image, width: 80 %>
+  <% if @products.any? %>
+    <div class="admin-table-wrap">
+      <table class="admin-table admin-table--products">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Descrição</th>
+            <th>Preço</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @products.each do |product| %>
+            <tr>
+              <td data-label="Produto">
+                <div class="admin-product-cell">
+                  <div class="admin-product-thumb">
+                    <% if product.image.attached? %>
+                      <%= image_tag product.image, alt: product.name %>
+                    <% else %>
+                      <span aria-hidden="true">◇</span>
+                    <% end %>
+                  </div>
+                  <strong><%= product.name %></strong>
+                </div>
+              </td>
+              <td data-label="Descrição" class="admin-table__description"><%= product.description.presence&.truncate(75) || "Sem descrição" %></td>
+              <td data-label="Preço"><strong><%= number_to_currency(product.price) %></strong></td>
+              <td data-label="Ações">
+                <div class="admin-table-actions">
+                  <%= link_to "Editar", edit_admin_product_path(product), class: "admin-button admin-button--small admin-button--secondary" %>
+                  <%= button_to "Excluir",
+                        admin_product_path(product),
+                        method: :delete,
+                        class: "admin-button admin-button--small admin-button--danger",
+                        form: { data: { turbo_confirm: "Excluir #{product.name}? Esta ação não pode ser desfeita." } } %>
+                </div>
+              </td>
+            </tr>
           <% end %>
-        </td>
-        <td>
-          <%= product.price %>
-        </td>
-        <td>
-          <%= link_to "Edit", edit_admin_product_path(product) %> |
-          <%= link_to "Delete", admin_product_path(product), method: :delete, data: { confirm: "Are you sure?" } %>
-        </td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="admin-empty-state">
+      <span>◇</span>
+      <h3>Seu catálogo está vazio</h3>
+      <p>Cadastre o primeiro produto para começar a vender.</p>
+      <%= link_to "Cadastrar produto", new_admin_product_path, class: "admin-button admin-button--primary" %>
+    </div>
+  <% end %>
+</section>

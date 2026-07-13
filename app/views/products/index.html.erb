@@ -9,6 +9,11 @@
 
     <p class="price">R$ <%= product.price.to_s("f") %></p>
   <% end %>
+
+  <%= button_to "Adicionar ao Carrinho",
+        add_product_path(product_id: product.id),
+        method: :post,
+        class: "btn btn-primary w-100 mt-3 add-to-cart" %>
   </div>
 <% end %>
 </div>
