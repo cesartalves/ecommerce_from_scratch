@@ -46,6 +46,7 @@ class Admin::ProductsController < Admin::BaseController
       :description,
       :image,
       :price,
+      :stock,
       :weight_grams,
       :length_cm,
       :width_cm,

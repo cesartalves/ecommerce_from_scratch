@@ -17,6 +17,11 @@
                 html: { method: :put }) do |f| %>
 
             <div class="mb-3">
+              <%= f.label :name, "Nome completo", class: "form-label fw-bold" %>
+              <%= f.text_field :name, autocomplete: "name", class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
               <%= f.label :email, class: "form-label fw-bold" %>
               <%= f.email_field :email,
                     autofocus: true,

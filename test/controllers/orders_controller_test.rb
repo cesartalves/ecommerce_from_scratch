@@ -18,6 +18,20 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, user.cart_order.line_items.find_by!(product: product).quantity
   end
 
+  test "does not add more units than are in stock" do
+    user = create_user("limited-stock@example.com")
+    product = products(:one)
+    product.update!(stock: 1)
+    sign_in(user)
+
+    post add_product_path(product_id: product.id)
+    post add_product_path(product_id: product.id)
+
+    assert_equal 1, user.cart_order.line_items.find_by!(product: product).quantity
+    assert_redirected_to cart_path
+    assert_equal "Não há mais unidades de #{product.name} em estoque.", flash[:alert]
+  end
+
   test "shows paid and waiting payment orders only" do
     user = create_user("orders@example.com")
     paid_order = user.orders.create!(status: :paid, total: 10)

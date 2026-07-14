@@ -16,6 +16,8 @@ class CheckPaymentStatusJob < ApplicationJob
       payment.order.complete!
     elsif payment.awaiting_confirmation? && attempt < MAX_ATTEMPTS
       self.class.set(wait: POLLING_INTERVAL).perform_later(payment, attempt + 1)
+    elsif !payment.awaiting_confirmation?
+      payment.order.cancel!
     end
   end
 end

@@ -79,6 +79,30 @@ class CheckoutsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "value=\"9.99\""
   end
 
+  test "rejects a payment below Mercado Pago's minimum before calling the provider" do
+    user = User.create!(
+      email: "minimum-payment@example.com",
+      password: "password123",
+      password_confirmation: "password123"
+    )
+    user.create_address!(zipcode: "01001-000")
+    product = products(:one)
+    product.update!(price: 0.20)
+    order = user.orders.create!(status: :cart)
+    order.line_items.create!(product: product, quantity: 1, price: product.price)
+    post user_session_path, params: {
+      user: { email: user.email, password: "password123" }
+    }
+
+    MercadoPago::Client.stub(:new, -> { flunk "Mercado Pago should not be called" }) do
+      post checkouts_path, params: { payment_method: "pix" }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "O valor mínimo para pagamento é R$ 0,50.", response.parsed_body["error"]
+    assert_empty order.payments
+  end
+
   test "shows PAC and SEDEX shipping options when shipping is enabled" do
     user = User.create!(
       email: "shipping@example.com",

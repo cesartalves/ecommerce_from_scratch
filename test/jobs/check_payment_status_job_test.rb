@@ -68,6 +68,6 @@ class CheckPaymentStatusJobTest < ActiveJob::TestCase
     end
 
     assert_equal "rejected", @payment.reload.status
-    assert_predicate @order.reload, :waiting_payment?
+    assert_predicate @order.reload, :cancelled?
   end
 end

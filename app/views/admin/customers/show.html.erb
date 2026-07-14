@@ -1,0 +1,46 @@
+<% content_for :title, "Cliente" %>
+
+<div class="admin-page-heading">
+  <div>
+    <span class="admin-eyebrow">Cliente #<%= @customer.id %></span>
+    <h1><%= @customer.name.presence || "Nome não informado" %></h1>
+    <p>Dados de contato, entrega e histórico de pedidos.</p>
+  </div>
+  <%= link_to "Voltar aos pedidos", admin_orders_path, class: "admin-button admin-button--secondary" %>
+</div>
+
+<div class="admin-detail-grid">
+  <section class="admin-panel">
+    <div class="admin-panel__header"><h2>Contato</h2></div>
+    <div class="admin-panel__body admin-detail-list">
+      <div><span>Nome</span><strong><%= @customer.name.presence || "Não informado" %></strong></div>
+      <div><span>E-mail</span><strong><%= mail_to @customer.email %></strong></div>
+      <div><span>Cadastro</span><strong><%= l @customer.created_at, format: :short %></strong></div>
+    </div>
+  </section>
+
+  <section class="admin-panel">
+    <div class="admin-panel__header"><h2>Endereço de entrega</h2></div>
+    <div class="admin-panel__body admin-detail-list">
+      <% if @customer.address %>
+        <div><span>Logradouro</span><strong><%= [@customer.address.street, @customer.address.number].compact_blank.join(", ") %></strong></div>
+        <div><span>Bairro</span><strong><%= @customer.address.neighborhood.presence || "Não informado" %></strong></div>
+        <div><span>Cidade/UF</span><strong><%= [@customer.address.city, @customer.address.state].compact_blank.join(" / ").presence || "Não informado" %></strong></div>
+        <div><span>CEP</span><strong><%= @customer.address.zipcode.presence || "Não informado" %></strong></div>
+        <div><span>País</span><strong><%= @customer.address.country.presence || "Brasil" %></strong></div>
+      <% else %>
+        <p class="admin-muted">Este cliente ainda não cadastrou um endereço.</p>
+      <% end %>
+    </div>
+  </section>
+</div>
+
+<section class="admin-panel admin-customer-orders">
+  <div class="admin-panel__header"><h2>Pedidos</h2><span class="admin-count"><%= @orders.size %></span></div>
+  <div class="admin-panel__body admin-detail-list">
+    <% @orders.each do |order| %>
+      <div><span>Pedido #<%= order.id %> · <%= order_status_label(order) %></span><strong><%= number_to_currency(order.total) %></strong></div>
+    <% end %>
+    <p class="admin-muted"><%= "Nenhum pedido finalizado." if @orders.empty? %></p>
+  </div>
+</section>

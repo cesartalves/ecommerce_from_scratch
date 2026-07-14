@@ -41,6 +41,12 @@
       <small>PNG, JPG ou WEBP.</small>
     </div>
 
+    <div class="admin-field">
+      <%= form.label :stock, "Estoque" %>
+      <%= form.number_field :stock, min: 0, step: 1, required: true, placeholder: "0" %>
+      <small>Quantidade disponível para venda.</small>
+    </div>
+
     <div class="admin-field admin-field--wide">
       <div>
         <strong>Dados para cálculo do frete</strong>

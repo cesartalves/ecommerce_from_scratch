@@ -26,6 +26,7 @@
             <th>Descrição</th>
             <th>Envio</th>
             <th>Preço</th>
+            <th>Estoque</th>
             <th class="text-end">Ações</th>
           </tr>
         </thead>
@@ -54,6 +55,7 @@
                 <% end %>
               </td>
               <td data-label="Preço"><strong><%= number_to_currency(product.price) %></strong></td>
+              <td data-label="Estoque"><strong><%= product.stock %></strong></td>
               <td data-label="Ações">
                 <div class="admin-table-actions">
                   <%= link_to "Editar", edit_admin_product_path(product), class: "admin-button admin-button--small admin-button--secondary" %>

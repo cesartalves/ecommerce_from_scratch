@@ -20,6 +20,7 @@ Rails.application.routes.draw do
     get '/', to: 'dashboard#index', as: :dashboard
     resources :products, except: :show
     resources :orders, only: :index
+    resources :customers, only: :show
   end
 
   devise_for :users, controllers: {

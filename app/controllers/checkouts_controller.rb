@@ -1,16 +1,25 @@
 class CheckoutsController < ApplicationController
+  MINIMUM_PAYMENT_AMOUNT = BigDecimal("0.50")
+
   before_action :authenticate_user!
   before_action :confirm_address, if: :address_missing?
 
   def index
     @order = current_user.cart_order
+    unless @order.stock_available?
+      redirect_to cart_path, alert: "Revise o carrinho: um ou mais produtos estão sem estoque suficiente."
+      return
+    end
     @public_key = ENV["MP_PUBLIC_KEY"]
     load_shipping_quotes
+    @minimum_payment_amount = MINIMUM_PAYMENT_AMOUNT
   end
 
   def create
     @order = current_user.cart_order
+    return render_stock_error unless @order.stock_available?
     return render_shipping_error unless apply_shipping
+    return render_minimum_amount_error if @order.total < MINIMUM_PAYMENT_AMOUNT
 
     client = MercadoPago::Client.new
 
@@ -64,6 +73,9 @@ class CheckoutsController < ApplicationController
     else
       render json: { error: "Método de pagamento inválido." }, status: :unprocessable_entity
     end
+  rescue ActiveRecord::RecordInvalid => error
+    Rails.logger.warn("Checkout stock reservation failed for order #{@order.id}: #{error.message}")
+    render_stock_error
   end
 
   private
@@ -133,7 +145,7 @@ class CheckoutsController < ApplicationController
     if payment.approved?
       @order.complete!
     elsif payment.awaiting_confirmation?
-      @order.waiting_payment! if payment.payment_method == "pix"
+      @order.wait_for_payment!
       CheckPaymentStatusJob.perform_later(payment)
     end
   end
@@ -146,6 +158,17 @@ class CheckoutsController < ApplicationController
   def render_shipping_error
     render json: { error: @shipping_error || "Selecione uma forma de entrega." },
            status: :unprocessable_entity
+  end
+
+  def render_stock_error
+    render json: { error: "Um ou mais produtos não possuem estoque suficiente. Revise o carrinho." },
+           status: :unprocessable_entity
+  end
+
+  def render_minimum_amount_error
+    render json: {
+      error: "O valor mínimo para pagamento é R$ 0,50."
+    }, status: :unprocessable_entity
   end
 
   def address_missing?

@@ -78,6 +78,13 @@
 
           <div id="payment-error" class="alert alert-danger d-none" role="alert"></div>
 
+          <% if @display_total < @minimum_payment_amount %>
+            <div class="alert alert-warning" role="alert">
+              O valor mínimo para pagamento é <%= number_to_currency(@minimum_payment_amount, unit: "R$ ", separator: ",", delimiter: ".") %>.
+              Adicione mais itens ao carrinho para continuar.
+            </div>
+          <% end %>
+
           <div id="card-form">
             <h5 class="mb-3">Dados do cartão</h5>
             <div class="row g-3">

@@ -8,12 +8,14 @@ one:
   length_cm: 16
   width_cm: 11
   height_cm: 2
+  stock: 10
 
 two:
-  name: MyString
-  description: MyText
+  name: Another Product
+  description: Another description
   price: 9.99
   weight_grams: 200
   length_cm: 20
   width_cm: 15
   height_cm: 3
+  stock: 10

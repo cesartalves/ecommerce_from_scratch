@@ -13,16 +13,38 @@
 
   <% else %>
 
+    <% if @unavailable_line_items.any? %>
+      <div class="alert alert-warning" role="alert">
+        Alguns itens não possuem estoque suficiente. Reduza ou remova as quantidades indicadas abaixo.
+      </div>
+    <% end %>
+
     <div class="card shadow-sm">
       <div class="card-body">
 
         <% @order.line_items.each do |line_item| %>
+          <% unavailable = line_item.quantity > line_item.product.stock %>
           <div class="row align-items-center py-3 border-bottom">
 
             <div class="col-md-5">
-              <h5 class="mb-0">
-                <%= line_item.product.name %>
-              </h5>
+              <div class="d-flex align-items-center gap-3">
+                <%= link_to product_path(line_item.product), class: "cart-product-image", aria: { label: line_item.product.name } do %>
+                  <% if line_item.product.image.attached? %>
+                    <%= image_tag line_item.product.image, alt: line_item.product.name %>
+                  <% else %>
+                    <span aria-hidden="true">◇</span>
+                  <% end %>
+                <% end %>
+
+                <div>
+                  <h5 class="mb-0">
+                    <%= link_to line_item.product.name, product_path(line_item.product), class: "cart-product-name" %>
+                  </h5>
+                  <% if unavailable %>
+                    <small class="text-danger">Apenas <%= line_item.product.stock %> em estoque</small>
+                  <% end %>
+                </div>
+              </div>
             </div>
 
             <div class="col-md-3 text-center">
@@ -46,6 +68,7 @@
 
                 <%= button_to add_product_path(product_id: line_item.product.id),
                       method: :post,
+                      disabled: line_item.quantity >= line_item.product.stock,
                       class: "btn btn-outline-success btn-sm" do %>
                   +
                 <% end %>
@@ -78,9 +101,11 @@
     </div>
 
     <div class="mt-4 text-end">
-      <%= link_to "Finalizar Pedido",
-            checkout_path,
-            class: "btn btn-lg btn-primary" %>
+      <% if @unavailable_line_items.empty? %>
+        <%= link_to "Finalizar Pedido", checkout_path, class: "btn btn-lg btn-primary" %>
+      <% else %>
+        <button class="btn btn-lg btn-secondary" disabled>Revise o estoque para continuar</button>
+      <% end %>
     </div>
 
   <% end %>

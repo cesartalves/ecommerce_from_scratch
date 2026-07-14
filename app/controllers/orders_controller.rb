@@ -15,6 +15,9 @@ class OrdersController < ApplicationController
 
     line_item = order.line_items.find_or_initialize_by(product: product)
     line_item.quantity ||= 0
+    if line_item.quantity >= product.stock
+      return redirect_to cart_path, alert: "Não há mais unidades de #{product.name} em estoque."
+    end
     line_item.quantity += 1
     line_item.save!
 

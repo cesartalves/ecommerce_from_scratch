@@ -15,6 +15,7 @@ class Admin::OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Consulte pagamentos"
     assert_includes response.body, "admin-table--orders"
+    assert_select "a[href=?]", admin_customer_path(orders(:one).user)
   end
 
   private

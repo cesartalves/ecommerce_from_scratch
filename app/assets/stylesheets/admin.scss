@@ -113,6 +113,14 @@
 
 .admin-panel { overflow: hidden; border: 1px solid #e0e6ec; border-radius: 16px; background: #fff; box-shadow: 0 8px 28px rgba(25, 42, 62, 0.05); }
 .admin-panel--form { max-width: 900px; }
+.admin-detail-grid { margin-bottom: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.admin-detail-list { display: grid; gap: 16px; }
+.admin-detail-list > div { padding-bottom: 14px; display: flex; gap: 20px; align-items: baseline; justify-content: space-between; border-bottom: 1px solid #edf0f3; }
+.admin-detail-list > div:last-child { padding-bottom: 0; border-bottom: 0; }
+.admin-detail-list span { color: #7b8999; font-size: 0.75rem; }
+.admin-detail-list strong { color: #263548; font-size: 0.82rem; text-align: right; }
+.admin-muted { margin: 0; color: #8a98a8; font-size: 0.8rem; }
+.admin-customer-orders { margin-top: 22px; }
 .admin-panel__header { padding: 22px 25px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #edf0f3; }
 .admin-panel__header--compact { padding-top: 18px; padding-bottom: 18px; }
 .admin-panel__header h2 { margin: 0 0 4px; font-size: 1rem; font-weight: 780; }

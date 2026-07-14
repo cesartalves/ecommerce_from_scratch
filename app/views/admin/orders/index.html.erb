@@ -29,8 +29,10 @@
             <tr>
               <td data-label="Pedido"><strong>#<%= order.id %></strong></td>
               <td data-label="Cliente">
-                <span class="admin-table__primary"><%= order.user.email %></span>
-                <small>Cliente #<%= order.user_id %></small>
+                <%= link_to admin_customer_path(order.user), class: "admin-text-link" do %>
+                  <span class="admin-table__primary"><%= order.user.name.presence || order.user.email %></span>
+                  <small><%= order.user.email %> · Ver dados do cliente</small>
+                <% end %>
               </td>
               <td data-label="Data">
                 <span class="admin-table__primary"><%= order.created_at.strftime("%d/%m/%Y") %></span>
