@@ -15,7 +15,9 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     post add_product_path(product_id: product.id)
 
     assert_redirected_to cart_path
-    assert_equal 1, user.cart_order.line_items.find_by!(product: product).quantity
+    line_item = user.cart_order.line_items.find_by!(product: product)
+    assert_equal 1, line_item.quantity
+    assert_equal product.price, line_item.price
   end
 
   test "does not add more units than are in stock" do

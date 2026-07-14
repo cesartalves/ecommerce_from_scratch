@@ -10,7 +10,7 @@ class CheckPaymentStatusJob < ApplicationJob
     raise "Mercado Pago returned HTTP #{response.code}" unless response.success?
 
     status = response["status"]
-    payment.update!(status: status)
+    payment.update!(status: status, status_detail: response["status_detail"])
 
     if payment.approved?
       payment.order.complete!

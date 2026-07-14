@@ -1,0 +1,4 @@
+interface:
+  display_name: "Copiar design do admin"
+  short_description: "Reproduz telas no padrão visual do admin"
+  default_prompt: "Use $copy-admin-design para criar uma tela consistente com o design do admin."

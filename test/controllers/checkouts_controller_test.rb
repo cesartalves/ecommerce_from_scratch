@@ -137,6 +137,100 @@ class CheckoutsControllerTest < ActionDispatch::IntegrationTest
     shipping_client.verify
   end
 
+  test "sends the selected card installments to Mercado Pago" do
+    user = User.create!(email: "installments@example.com", password: "password123")
+    user.create_address!(zipcode: "01001-000")
+    product = products(:one)
+    order = user.orders.create!(status: :cart)
+    order.line_items.create!(product: product, quantity: 1, price: product.price)
+    response = FakeResponse.new(201, { "id" => 456, "status" => "approved" })
+    client = Minitest::Mock.new
+    client.expect(:create_payment, response) do |payload, device_id: nil|
+      payload[:installments] == 3 &&
+        payload[:transaction_amount] == 9.99 &&
+        payload.dig(:additional_info, :items, 0, :unit_price) == 9.99
+    end
+    post user_session_path, params: { user: { email: user.email, password: "password123" } }
+
+    MercadoPago::Client.stub(:new, client) do
+      post checkouts_path, params: {
+        payment_method: "card",
+        token: "card-token",
+        payment_method_id: "master",
+        installments: 3,
+        identification_number: "12345678900"
+      }
+    end
+
+    assert_response :success
+    assert_predicate order.reload, :paid?
+    client.verify
+  end
+
+  test "shows a card rejection without removing the order from the cart" do
+    user = User.create!(email: "rejected-card@example.com", password: "password123")
+    user.create_address!(zipcode: "01001-000")
+    product = products(:one)
+    order = user.orders.create!(status: :cart)
+    order.line_items.create!(product: product, quantity: 1, price: product.price)
+    mercado_pago_response = FakeResponse.new(201, {
+      "id" => 789,
+      "status" => "rejected",
+      "status_detail" => "cc_rejected_other_reason"
+    })
+    client = Minitest::Mock.new
+    client.expect(:create_payment, mercado_pago_response) { |_payload, device_id: nil| device_id.nil? }
+    post user_session_path, params: { user: { email: user.email, password: "password123" } }
+
+    MercadoPago::Client.stub(:new, client) do
+      post checkouts_path, params: {
+        payment_method: "card",
+        token: "card-token",
+        payment_method_id: "master",
+        installments: 1,
+        identification_number: "12345678900"
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes response.parsed_body["error"], "recusado pelo emissor"
+    assert_predicate order.reload, :cart?
+    assert_equal "cc_rejected_other_reason", order.payments.last.status_detail
+    client.verify
+  end
+
+  test "translates an incompatible card payment method response" do
+    user = User.create!(email: "invalid-method@example.com", password: "password123")
+    user.create_address!(zipcode: "01001-000")
+    product = products(:one)
+    order = user.orders.create!(status: :cart)
+    order.line_items.create!(product: product, quantity: 1, price: product.price)
+    mercado_pago_response = FakeResponse.new(400, {
+      "message" => "Cannot infer Payment Method",
+      "cause" => [ { "code" => 2131 } ]
+    })
+    client = Minitest::Mock.new
+    client.expect(:create_payment, mercado_pago_response) { |_payload, device_id: nil| device_id.nil? }
+    post user_session_path, params: { user: { email: user.email, password: "password123" } }
+
+    MercadoPago::Client.stub(:new, client) do
+      post checkouts_path, params: {
+        payment_method: "card",
+        token: "card-token",
+        payment_method_id: "visa",
+        issuer_id: 25,
+        installments: 1,
+        identification_number: "12345678900"
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes response.parsed_body["error"], "não são compatíveis"
+    assert_predicate order.reload, :cart?
+    assert_empty order.payments
+    client.verify
+  end
+
   private
 
   def with_shipping_enabled

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_14_020000) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_14_040000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -60,7 +60,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_14_020000) do
     t.bigint "product_id", null: false
     t.integer "quantity"
     t.bigint "order_id", null: false
-    t.decimal "price"
+    t.decimal "price", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["order_id"], name: "index_line_items_on_order_id"
@@ -89,6 +89,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_14_020000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.jsonb "pix_data", default: {}, null: false
+    t.string "status_detail"
     t.index ["external_id"], name: "index_payments_on_external_id", unique: true
     t.index ["order_id"], name: "index_payments_on_order_id"
   end

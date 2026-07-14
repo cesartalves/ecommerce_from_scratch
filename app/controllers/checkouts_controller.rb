@@ -25,28 +25,43 @@ class CheckoutsController < ApplicationController
 
     case params[:payment_method]
     when "card"
+      installments = params[:installments].to_i
+      return render_installments_error unless installments.between?(1, 24)
+
       payload = {
         transaction_amount: @order.total.to_f,
         token: params[:token],
         description: "Pedido ##{@order.id}",
-        installments: 1,
+        installments: installments,
         payment_method_id: params[:payment_method_id],
         payer: {
           email: current_user.email,
           identification: {
             type: "CPF",
             number: params[:identification_number]
-          }
-        }
+          },
+          first_name: customer_first_name,
+          last_name: customer_last_name
+        },
+        additional_info: payment_additional_info
       }
       payload[:issuer_id] = params[:issuer_id].to_i if params[:issuer_id].present?
 
-      response = client.create_payment(payload)
+      response = client.create_payment(payload, device_id: params[:device_id].presence)
 
       return render_payment_error(response) unless response.code == 201
 
       payment = create_payment_from(response, "card")
       process_payment_status(payment)
+
+      if payment.rejected?
+        return render json: { error: payment.rejection_message }, status: :unprocessable_entity
+      end
+
+      unless payment.approved? || payment.awaiting_confirmation?
+        return render json: { error: "O Mercado Pago retornou um estado de pagamento inesperado. Tente novamente." },
+                      status: :unprocessable_entity
+      end
 
       render json: { status: payment.status }
 
@@ -137,6 +152,7 @@ class CheckoutsController < ApplicationController
       external_id: response["id"].to_s,
       payment_method: payment_method,
       status: response["status"],
+      status_detail: response["status_detail"],
       pix_data: pix_data
     )
   end
@@ -151,8 +167,15 @@ class CheckoutsController < ApplicationController
   end
 
   def render_payment_error(response)
-    render json: { error: response["message"] || "Não foi possível processar o pagamento." },
+    render json: { error: mercado_pago_error_message(response) },
            status: :unprocessable_entity
+  end
+
+  def mercado_pago_error_message(response)
+    cause_code = response.dig("cause", 0, "code")
+    return "O cartão e a opção de parcelamento não são compatíveis. Confira o cartão e selecione novamente as parcelas." if cause_code == 2131
+
+    response["message"] || "Não foi possível processar o pagamento."
   end
 
   def render_shipping_error
@@ -169,6 +192,41 @@ class CheckoutsController < ApplicationController
     render json: {
       error: "O valor mínimo para pagamento é R$ 0,50."
     }, status: :unprocessable_entity
+  end
+
+  def render_installments_error
+    render json: { error: "Selecione uma opção de parcelamento válida." },
+           status: :unprocessable_entity
+  end
+
+  def payment_additional_info
+    {
+      items: @order.line_items.includes(:product).map do |line_item|
+        {
+          id: line_item.product_id.to_s,
+          title: line_item.product.name,
+          description: line_item.product.description.to_s.truncate(200),
+          category_id: "collectibles",
+          quantity: line_item.quantity,
+          unit_price: (line_item.price || line_item.product.price).to_f
+        }
+      end,
+      shipments: {
+        receiver_address: {
+          zip_code: current_user.address.zipcode,
+          street_name: current_user.address.street,
+          street_number: current_user.address.number
+        }
+      }
+    }
+  end
+
+  def customer_first_name
+    current_user.name.to_s.split.first.to_s
+  end
+
+  def customer_last_name
+    current_user.name.to_s.split.drop(1).join(" ")
   end
 
   def address_missing?

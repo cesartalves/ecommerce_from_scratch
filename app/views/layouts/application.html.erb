@@ -17,25 +17,28 @@
     <%= javascript_importmap_tags %>
   </head>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <body>
-  
-    
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <button class="navbar-toggler" type="button"
+  <body class="storefront-body">
+    <nav class="navbar navbar-expand-lg storefront-navbar" aria-label="Navegação principal">
+      <div class="container storefront-navbar__inner">
+      <%= link_to root_path, class: "storefront-brand" do %>
+        <span class="storefront-brand__mark">CC</span>
+        <span>
+          <strong>Cesar</strong>
+          <small>Colecionismo</small>
+        </span>
+      <% end %>
+
+      <button class="navbar-toggler" type="button"
             data-bs-toggle="collapse"
-            data-bs-target="#navbarTogglerDemo03"
-            aria-controls="navbarTogglerDemo03"
+            data-bs-target="#storefrontNavigation"
+            aria-controls="storefrontNavigation"
             aria-expanded="false"
             aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <%= link_to "cesarcolecionismo", root_path, class: "navbar-brand" %>
-
-    <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
-      <ul class="navbar-nav me-auto mt-2 mt-lg-0">
-        
-
+      <div class="collapse navbar-collapse" id="storefrontNavigation">
+        <ul class="navbar-nav me-auto storefront-nav">
         <li class="nav-item">
           <%= link_to "Produtos", products_path, class: "nav-link" %>
         </li>
@@ -46,29 +49,44 @@
             <li class="nav-item">
               <%= link_to "Meus Pedidos", orders_path, class: "nav-link" %>
             </li>
+            <li class="nav-item">
+              <%= link_to "Meu perfil", edit_user_registration_path, class: "nav-link" %>
+            </li>
           <% else %>
-            <%= link_to "Login", new_user_session_path, class: "nav-link" %>
+            <li class="nav-item"><%= link_to "Entrar", new_user_session_path, class: "nav-link" %></li>
           <% end %>
-        </li>
+        </ul>
 
-        <li class="nav-item">
-          <%= link_to "Meu Perfil", edit_user_registration_path, class: "nav-link" %>
-        </li>
-      </ul>
+        <%= search_form_for @q, url: products_path, method: :get,
+            html: { class: "storefront-search", role: "search" } do |f| %>
 
-    <%= search_form_for @q, url: products_path, method: :get,
-        html: { class: "d-flex" } do |f| %>
+          <%= f.search_field :name_or_description_cont,
+                class: "form-control",
+                placeholder: "Buscar no catálogo...",
+                aria: { label: "Buscar produtos" } %>
 
-      <%= f.search_field :name_or_description_cont,
-            class: "form-control me-2",
-            placeholder: "Procurar produtos..." %>
+          <%= f.submit "Buscar", class: "btn storefront-button storefront-button--secondary" %>
+        <% end %>
+      </div>
+      </div>
+    </nav>
 
-      <%= f.submit "Procurar",
-            class: "btn btn-outline-success" %>
+    <main class="storefront-main">
+      <div class="storefront-flashes container">
+        <% flash.each do |type, message| %>
+          <div class="storefront-flash storefront-flash--<%= type == "alert" ? "danger" : "success" %>" role="alert">
+            <%= message %>
+          </div>
+        <% end %>
+      </div>
+      <%= yield %>
+    </main>
 
-    <% end %>
-  </div>
-</nav>
-    <%= yield %>
+    <footer class="storefront-footer">
+      <div class="container">
+        <span class="storefront-brand__mark">CC</span>
+        <p><strong>Cesar Colecionismo</strong><br>Peças especiais para a sua coleção.</p>
+      </div>
+    </footer>
   </body>
 </html>

@@ -108,6 +108,13 @@
                 <label for="docNumber" class="form-label">CPF do titular</label>
                 <input type="text" id="docNumber" class="form-control" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00">
               </div>
+              <div class="col-12">
+                <label for="installments" class="form-label">Parcelamento</label>
+                <select id="installments" class="form-select" disabled>
+                  <option value="">Informe o cartão para consultar as parcelas</option>
+                </select>
+                <div class="form-text">As condições e eventuais juros são definidos pelo emissor do cartão.</div>
+              </div>
             </div>
           </div>
 
@@ -145,6 +152,7 @@
     let mp;
     let paymentMethodId;
     let issuerId;
+    let cardBin;
     let pixPaymentCreated = false;
     let pixRequestInProgress = false;
 
@@ -172,6 +180,42 @@
         style: "currency",
         currency: "BRL"
       });
+      if (cardBin) loadInstallments(cardBin);
+    };
+
+    const installmentsSelect = document.getElementById("installments");
+
+    const clearInstallments = (message = "Informe o cartão para consultar as parcelas") => {
+      installmentsSelect.replaceChildren(new Option(message, ""));
+      installmentsSelect.disabled = true;
+    };
+
+    const loadInstallments = async (bin) => {
+      clearInstallments("Consultando opções...");
+
+      try {
+        const response = await mp.getInstallments({
+          amount: document.getElementById("transaction_amount").value,
+          bin: bin,
+          paymentTypeId: "credit_card"
+        });
+        const options = response?.[0]?.payer_costs || [];
+        if (!options.length) {
+          clearInstallments("Parcelamento indisponível para este cartão");
+          return;
+        }
+
+        paymentMethodId = response[0].payment_method_id || paymentMethodId;
+        issuerId = response[0].issuer?.id || issuerId;
+
+        installmentsSelect.replaceChildren(...options.map((option) =>
+          new Option(option.recommended_message, option.installments)
+        ));
+        installmentsSelect.disabled = false;
+      } catch (error) {
+        console.error("Mercado Pago installments error:", error);
+        clearInstallments("Não foi possível consultar as parcelas");
+      }
     };
 
     const errorMessage = (error) => {
@@ -234,12 +278,20 @@
       cardNumberField.on("binChange", async ({ bin }) => {
         paymentMethodId = undefined;
         issuerId = undefined;
-        if (!bin) return;
+        cardBin = bin;
+        if (!bin) {
+          clearInstallments();
+          return;
+        }
 
         try {
           const { results } = await mp.getPaymentMethods({ bin });
-          const paymentMethod = results[0];
-          if (!paymentMethod) return;
+          const paymentMethod = results.find((method) => method.payment_type_id === "credit_card");
+          if (!paymentMethod) {
+            clearInstallments("Este cartão não oferece pagamento na função crédito");
+            showError("Use um cartão de crédito válido para continuar.");
+            return;
+          }
 
           paymentMethodId = paymentMethod.id;
 
@@ -252,6 +304,7 @@
           } else {
             issuerId = paymentMethod.issuer?.id;
           }
+          await loadInstallments(bin);
         } catch (error) {
           showError("Não foi possível identificar a bandeira do cartão.");
         }
@@ -321,6 +374,9 @@
         if (!paymentMethodId) {
           throw new Error("Confira o número do cartão antes de continuar.");
         }
+        if (!installmentsSelect.value) {
+          throw new Error("Selecione uma opção de parcelamento.");
+        }
 
         const token = await mp.fields.createCardToken({
           cardholderName: document.getElementById("cardholderName").value,
@@ -336,8 +392,9 @@
           payment_method_id: paymentMethodId,
           issuer_id: issuerId,
           identification_number: document.getElementById("docNumber").value.replace(/\D/g, ""),
+          device_id: window.MP_DEVICE_SESSION_ID,
           transaction_amount: transactionAmount,
-          installments: 1
+          installments: Number(installmentsSelect.value)
         });
         window.location.replace("/pedidos");
       } catch (error) {

@@ -1,19 +1,46 @@
-<div class="products-container">  
+<% content_for :title, "Produtos" %>
+
+<section class="storefront-catalog container">
+  <header class="storefront-page-heading">
+    <div>
+      <span class="storefront-eyebrow">Catálogo</span>
+      <h1>Peças para sua coleção</h1>
+      <p>Descubra itens selecionados e disponíveis para envio.</p>
+    </div>
+    <span class="storefront-count"><%= pluralize(@products.size, "produto", "produtos") %></span>
+  </header>
+
+<div class="products-container">
 <% @products.each do |product| %>
   <div class="products-card">
   <%= link_to product_path(product), class: "product-link" do %>
+    <div class="products-card__image">
+      <% if product.image.attached? %>
+        <%= image_tag product.image, alt: product.name %>
+      <% else %>
+        <span aria-hidden="true">◇</span>
+      <% end %>
+    </div>
+    <span class="products-card__label">Disponível</span>
     <h3><%= product.name %></h3>
-    <p><%= product.description %></p>
+    <p><%= product.description.presence&.truncate(100) || "Peça selecionada para colecionadores." %></p>
 
-    <%= image_tag product.image if product.image.attached? %>
-
-    <p class="price">R$ <%= product.price.to_s("f") %></p>
+    <p class="price"><%= number_to_currency(product.price, unit: "R$ ", separator: ",", delimiter: ".") %></p>
   <% end %>
 
   <%= button_to "Adicionar ao Carrinho",
         add_product_path(product_id: product.id),
         method: :post,
-        class: "btn btn-primary w-100 mt-3 add-to-cart" %>
+        class: "btn storefront-button storefront-button--primary w-100 add-to-cart" %>
   </div>
 <% end %>
 </div>
+
+<% if @products.empty? %>
+  <div class="storefront-empty-state">
+    <span aria-hidden="true">◇</span>
+    <h2>Nenhuma peça disponível</h2>
+    <p>Novos itens serão adicionados ao catálogo em breve.</p>
+  </div>
+<% end %>
+</section>

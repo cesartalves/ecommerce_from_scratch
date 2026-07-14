@@ -12,10 +12,13 @@ class MercadoPago::Client
     }
   end
 
-  def create_payment(payload)
+  def create_payment(payload, device_id: nil)
+    headers = @headers.dup
+    headers["X-meli-session-id"] = device_id if device_id.present?
+
     self.class.post(
       "/v1/payments",
-      headers: @headers,
+      headers: headers,
       body: payload.to_json
     )
   end
