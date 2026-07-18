@@ -27,7 +27,7 @@
           <% @orders.each do |order| %>
             <% payment = order.payments.max_by(&:created_at) %>
             <tr>
-              <td data-label="Pedido"><strong>#<%= order.id %></strong></td>
+              <td data-label="Pedido"><%= link_to "##{order.id}", admin_order_path(order), class: "admin-text-link" %></td>
               <td data-label="Cliente">
                 <%= link_to admin_customer_path(order.user), class: "admin-text-link" do %>
                   <span class="admin-table__primary"><%= order.user.name.presence || order.user.email %></span>

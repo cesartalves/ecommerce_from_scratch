@@ -19,7 +19,7 @@ Rails.application.routes.draw do
 
     get '/', to: 'dashboard#index', as: :dashboard
     resources :products, except: :show
-    resources :orders, only: :index
+    resources :orders, only: %i[index show]
     resources :customers, only: :show
   end
 

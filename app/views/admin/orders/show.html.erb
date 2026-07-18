@@ -1,0 +1,58 @@
+<% content_for :title, "Pedido ##{@order.id}" %>
+
+<div class="admin-page-heading">
+  <div>
+    <span class="admin-eyebrow">Vendas</span>
+    <h1>Pedido #<%= @order.id %></h1>
+    <p>Dados do pedido, pagamento e endereço usado para a entrega.</p>
+  </div>
+  <%= link_to "Voltar aos pedidos", admin_orders_path, class: "admin-button admin-button--secondary" %>
+</div>
+
+<div class="admin-detail-grid">
+  <section class="admin-panel">
+    <div class="admin-panel__header admin-panel__header--compact"><h2>Informações do pedido</h2></div>
+    <div class="admin-panel__body admin-detail-list">
+      <div><span>Cliente</span><strong><%= @order.user.name.presence || @order.user.email %></strong></div>
+      <div><span>Data</span><strong><%= l(@order.created_at, format: :short) %></strong></div>
+      <div><span>Status</span><strong><span class="admin-badge <%= order_status_badge_class(@order) %>"><%= order_status_label(@order) %></span></strong></div>
+      <div><span>Frete</span><strong><%= @order.shipping_service.presence || "Não informado" %></strong></div>
+      <div><span>Total</span><strong><%= number_to_currency(@order.total) %></strong></div>
+    </div>
+  </section>
+
+  <section class="admin-panel">
+    <div class="admin-panel__header admin-panel__header--compact"><h2>Endereço de entrega</h2></div>
+    <div class="admin-panel__body">
+      <% if @order.shipping_address %>
+        <div class="admin-detail-list">
+          <div><span>Logradouro</span><strong><%= [@order.shipping_address.street, @order.shipping_address.number].compact_blank.join(", ").presence || "Não informado" %></strong></div>
+          <div><span>Bairro</span><strong><%= @order.shipping_address.neighborhood.presence || "Não informado" %></strong></div>
+          <div><span>Cidade/UF</span><strong><%= [@order.shipping_address.city, @order.shipping_address.state].compact_blank.join(" / ").presence || "Não informado" %></strong></div>
+          <div><span>CEP</span><strong><%= @order.shipping_address.zipcode.presence || "Não informado" %></strong></div>
+          <div><span>País</span><strong><%= @order.shipping_address.country.presence || "Brasil" %></strong></div>
+        </div>
+      <% else %>
+        <p class="admin-muted">Este pedido ainda não possui um endereço de entrega registrado.</p>
+      <% end %>
+    </div>
+  </section>
+</div>
+
+<section class="admin-panel">
+  <div class="admin-panel__header"><h2>Itens</h2><span class="admin-count"><%= @order.line_items.size %></span></div>
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th>Produto</th><th>Quantidade</th><th class="text-end">Preço</th></tr></thead>
+      <tbody>
+        <% @order.line_items.each do |item| %>
+          <tr>
+            <td><strong><%= item.product.name %></strong></td>
+            <td><%= item.quantity %></td>
+            <td class="text-end"><%= number_to_currency(item.price) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

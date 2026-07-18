@@ -16,6 +16,19 @@ class Admin::OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Consulte pagamentos"
     assert_includes response.body, "admin-table--orders"
     assert_select "a[href=?]", admin_customer_path(orders(:one).user)
+    assert_select "a[href=?]", admin_order_path(orders(:one))
+  end
+
+  test "shows the shipping address captured for the order" do
+    sign_in_admin
+    order = orders(:one)
+    order.create_shipping_address!(addresses(:one).attributes.slice(*Address::LOCATION_ATTRIBUTES))
+
+    get admin_order_path(order)
+
+    assert_response :success
+    assert_select "h2", text: "Endereço de entrega"
+    assert_includes response.body, order.shipping_address.street
   end
 
   private

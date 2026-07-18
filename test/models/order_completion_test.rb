@@ -29,6 +29,35 @@ class OrderCompletionTest < ActiveSupport::TestCase
     end
   end
 
+  test "completing an order copies the customer address as an immutable shipping snapshot" do
+    order = orders(:one)
+    order.update!(status: :cart)
+    customer_address = order.user.address
+
+    assert_difference "Address.count", 1 do
+      order.complete!
+    end
+
+    shipping_address = order.reload.shipping_address
+    assert_equal customer_address.attributes.slice(*Address::LOCATION_ATTRIBUTES),
+                 shipping_address.attributes.slice(*Address::LOCATION_ATTRIBUTES)
+    assert_nil shipping_address.user_id
+
+    customer_address.update!(street: "Novo endereço")
+    assert_not_equal customer_address.street, shipping_address.reload.street
+  end
+
+  test "completing the same order twice creates only one shipping address" do
+    order = orders(:one)
+    order.update!(status: :cart)
+
+    order.complete!
+
+    assert_no_difference "Address.count" do
+      order.complete!
+    end
+  end
+
   test "waiting for payment fails atomically when stock is insufficient" do
     order = orders(:one)
     order.update!(status: :cart)

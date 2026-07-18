@@ -2,6 +2,7 @@ class Order < ApplicationRecord
   belongs_to :user
   has_many :line_items
   has_many :payments, dependent: :destroy
+  has_one :shipping_address, class_name: "Address", dependent: :destroy
 
   enum :status, {
     pending: "pending",
@@ -109,7 +110,20 @@ class Order < ApplicationRecord
       end
 
       update!(status: new_status)
+      capture_shipping_address! if new_status == :paid
       user.orders.find_or_create_by!(status: :cart)
     end
+  end
+
+  def capture_shipping_address!
+    return if shipping_address.present?
+
+    source_address = user.address
+    unless source_address
+      errors.add(:base, "Endereço de entrega não cadastrado")
+      raise ActiveRecord::RecordInvalid, self
+    end
+
+    create_shipping_address!(source_address.attributes.slice(*Address::LOCATION_ATTRIBUTES))
   end
 end

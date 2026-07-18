@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_14_040000) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_18_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -43,7 +43,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_14_040000) do
   end
 
   create_table "addresses", force: :cascade do |t|
-    t.bigint "user_id", null: false
+    t.bigint "user_id"
     t.string "street"
     t.string "number"
     t.string "neighborhood"
@@ -53,7 +53,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_14_040000) do
     t.string "country"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "order_id"
+    t.index ["order_id"], name: "index_addresses_on_order_id", unique: true
     t.index ["user_id"], name: "index_addresses_on_user_id"
+    t.check_constraint "user_id IS NOT NULL AND order_id IS NULL OR user_id IS NULL AND order_id IS NOT NULL", name: "addresses_belong_to_user_or_order"
   end
 
   create_table "line_items", force: :cascade do |t|
@@ -124,6 +127,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_14_040000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "addresses", "orders"
   add_foreign_key "addresses", "users"
   add_foreign_key "line_items", "orders"
   add_foreign_key "line_items", "products"
