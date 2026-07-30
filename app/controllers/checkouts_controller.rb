@@ -66,14 +66,16 @@ class CheckoutsController < ApplicationController
       render json: { status: payment.status }
 
     when "pix"
-      response = client.create_payment(
+      payload = {
         transaction_amount: @order.total.to_f,
         description: "Pedido ##{@order.id}",
         payment_method_id: "pix",
         payer: {
           email: current_user.email
         }
-      )
+      }
+
+      response = client.create_payment(payload)
 
       return render_payment_error(response) unless response.code == 201
 
